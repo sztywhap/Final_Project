@@ -1,0 +1,13 @@
+---
+title: "345 Final Project"
+author: "Colin Kalsbeek"
+date: "4/21/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# he said yeah we will need 60 urls 
+# and we scrape what we can from all of them (same amount, <25)
