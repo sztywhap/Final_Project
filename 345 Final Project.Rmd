@@ -15,12 +15,58 @@ library(rvest)
 # and we scrape what we can from all of them (same amount, <25)
 
 ```{r}
-url = "https://en.wikipedia.org/wiki/Billboard_year-end_top_50_singles_of_1958"
+url58 = "https://en.wikipedia.org/wiki/Billboard_year-end_top_50_singles_of_1958"
+url59 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1959"
+url60 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1960"
+url61 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1961" 
+url62 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1962"
+url63 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1963"
+url64 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1964"
+url65 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1965"
+url66 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1966"
+url67 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1967"
+url68 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1968"
+url69 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1969"
+url70 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1970"
+url71 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1971"
+url72 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1972"
+url73 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1973"
+url74 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1974"
+url75 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1975"
+url76 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1976"
+url77 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1977"
+url78 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1978"
+url79 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1979"
+url80 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1980"
+url81 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1981"
+url82 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1982"
+url83 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1983"
+url84 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1984"
+url85 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1985"
+url86 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1986"
+url87 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1987"
+url88 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1988"
+url89 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1989"
+
+```
+
+```{r}
 a = read_html(url)
 tab = a %>% html_nodes("table") %>% .[1]
 tab = tab %>% html_table %>% .[[1]] 
 tab = tab %>% setNames(c("No.", "Title", "Artist(s)"))
 tab
-#poopybutthole 
+
+
+table = function(x) {
+  url = x
+  a = read_html(url)
+  tab = a %>% html_nodes("table") %>% .[1]
+  tab = tab %>% html_table %>% .[[1]] 
+  tab = tab %>% setNames(c("No.", "Title", "Artist(s)"))
+  return(tab)
+}
+
+table("https://en.wikipedia.org/wiki/Billboard_year-end_top_50_singles_of_1958")
 ```
 
