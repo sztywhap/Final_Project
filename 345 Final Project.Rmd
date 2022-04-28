@@ -7,7 +7,20 @@ output: word_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(rvest)
 ```
 
 # he said yeah we will need 60 urls 
 # and we scrape what we can from all of them (same amount, <25)
+
+```{r}
+url = "https://en.wikipedia.org/wiki/Billboard_year-end_top_50_singles_of_1958"
+a = read_html(url)
+tab = a %>% html_nodes("table") %>% .[1]
+tab = tab %>% html_table %>% .[[1]] 
+tab = tab %>% setNames(c("No.", "Title", "Artist(s)"))
+tab
+#poopybutthole 
+```
+
