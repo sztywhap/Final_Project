@@ -219,7 +219,6 @@ tab_20 = songs(url_20)
 tab_20 = tab_20 %>% mutate(Year = 2020)
 tab_21 = songs(url_21)
 tab_21 = tab_21 %>% mutate(Year = 2021)
-tab_12
 ```
 
 ```{r,eval=FALSE}
