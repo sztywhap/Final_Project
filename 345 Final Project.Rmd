@@ -82,11 +82,12 @@ url_21 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_20
 ```
 
 ```{r}
-songs = function(url) {
+songs = function(url,n) {
   data = read_html(url)
   tab = data %>% html_nodes("table") %>% .[1]
   tab = tab %>% html_table %>% .[[1]] 
   tab = tab %>% setNames(c("No.", "Title", "Artist(s)"))
+  tab = tab[1:n,] 
   return(tab)
 }
 ```
