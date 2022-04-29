@@ -81,7 +81,7 @@ url90 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_199
 ```
 
 ```{r}
-# function for reading URL's into a numbered list of songs and artists
+# function for reading URL's into a tibble with rank number, song title, and artist
 table = function(x) {
   url = x
   a = read_html(url)
