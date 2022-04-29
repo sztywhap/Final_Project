@@ -1,7 +1,7 @@
 ---
-title: "345 Final Project"
-author: "Colin Kalsbeek"
-date: "4/21/2022"
+title: "345 Final Project - The Song One"
+author: "Abby Schmidt, Colin Kalsbeek, Katie Erlandson"
+date: "4/20/2022"
 output: word_document
 ---
 
@@ -11,8 +11,6 @@ library(tidyverse)
 library(rvest)
 ```
 
-# he said yeah we will need 60 urls 
-# and we scrape what we can from all of them (same amount, <25)
 
 ```{r}
 url58 = "https://en.wikipedia.org/wiki/Billboard_year-end_top_50_singles_of_1958"
@@ -83,13 +81,7 @@ url90 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_199
 ```
 
 ```{r}
-a = read_html(url)
-tab = a %>% html_nodes("table") %>% .[1]
-tab = tab %>% html_table %>% .[[1]] 
-tab = tab %>% setNames(c("No.", "Title", "Artist(s)"))
-tab
-
-
+# function for reading URL's into a numbered list of songs and artists
 table = function(x) {
   url = x
   a = read_html(url)
