@@ -11,10 +11,9 @@ library(tidyverse)
 library(rvest)
 ```
 
-# he said yeah we will need 60 urls 
-# and we scrape what we can from all of them (same amount, <25)
-
-```{r}
+```{r,eval=FALSE}
+## Read in top 100 songs for each year from 1958-2021
+## URLs for the years 2012 and 2013 contained no data so they were omitted from analysis
 url_58 = "https://en.wikipedia.org/wiki/Billboard_year-end_top_50_singles_of_1958"
 url_59 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1959"
 url_60 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1960"
@@ -81,7 +80,8 @@ url_20 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_20
 url_21 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_2021"
 ```
 
-```{r}
+```{r,eval=FALSE}
+## 'songs' function takes in URL and a number n (1 to 100, default is 10) to output a table of top songs of length n.
 songs = function(url,n=10) {
   data = read_html(url)
   tab = data %>% html_nodes("table") %>% .[1]
@@ -92,7 +92,9 @@ songs = function(url,n=10) {
 }
 ```
 
-```{r}
+```{r,eval=FALSE}
+## Generate tables of top songs for each year and add column specifying year.
+## Years 2012 and 2013 were not used.
 tab_58 = songs(url_58)
 tab_58 = tab_58 %>% mutate(Year = 1958)
 tab_59 = songs(url_59)
@@ -201,10 +203,6 @@ tab_10 = songs(url_10)
 tab_10 = tab_10 %>% mutate(Year = 2010)
 tab_11 = songs(url_11)
 tab_11 = tab_11 %>% mutate(Year = 2011)
-tab_12 = songs(url_12)
-tab_12 = tab_12 %>% mutate(Year = 2012)
-tab_13 = songs(url_13)
-tab_13 = tab_13 %>% mutate(Year = 2013)
 tab_14 = songs(url_14)
 tab_14 = tab_14 %>% mutate(Year = 2014)
 tab_15 = songs(url_15)
@@ -223,11 +221,22 @@ tab_21 = songs(url_21)
 tab_21 = tab_21 %>% mutate(Year = 2021)
 tab_12
 ```
-## For some reason the tables for 2012 and 2013 are empty
-```{r}
+
+```{r,eval=FALSE}
+## Bind all of the separate year tables together by row to form a single data frame.
+## Years 2012 and 2013 were not used.
 data_songs = rbind(tab_58, tab_59, tab_60, tab_61, tab_62, tab_63, tab_64, tab_65, tab_66, tab_67, tab_68, tab_69, tab_70, tab_71, tab_72, tab_73, tab_74, tab_75, tab_76, tab_77, tab_78, tab_79, tab_80, tab_81, tab_82, tab_83, tab_84, tab_85, tab_86, tab_87, tab_88, tab_89, tab_90, tab_91, tab_92, tab_93, tab_94, tab_95, tab_96, tab_97, tab_98, tab_99, tab_00, tab_01, tab_02, tab_03, tab_04, tab_05, tab_06, tab_07, tab_08, tab_09, tab_10, tab_11, tab_14, tab_15, tab_16, tab_17, tab_18, tab_19, tab_20, tab_21) 
 
+## Make 'No.' column numeric
 data_songs = data_songs %>% transform(No. = as.numeric(No.))
+## Group songs by 'No.' in ascending order
 data_songs = data_songs %>% group_by(No.) %>% arrange(No.)
+## Save data frame
+save(data_songs,file="songs.Rda")
+```
+
+```{r}
+## Load saved data frame for future use
+load("songs.Rda")
 data_songs
 ```
