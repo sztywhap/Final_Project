@@ -82,7 +82,7 @@ url_21 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_20
 ```
 
 ```{r}
-songs = function(url,n) {
+songs = function(url,n=10) {
   data = read_html(url)
   tab = data %>% html_nodes("table") %>% .[1]
   tab = tab %>% html_table %>% .[[1]] 
@@ -90,5 +90,62 @@ songs = function(url,n) {
   tab = tab[1:n,] 
   return(tab)
 }
+```
+
+```{r}
+tab_58 = songs(url_58)
+tab_59 = songs(url_59)
+tab_60 = songs(url_60)
+tab_61 = songs(url_61)
+tab_62 = songs(url_62)
+tab_63 = songs(url_63)
+tab_64 = songs(url_64)
+tab_65 = songs(url_65)
+tab_66 = songs(url_66)
+tab_67 = songs(url_67)
+tab_68 = songs(url_68)
+tab_69 = songs(url_69)
+tab_70 = songs(url_70)
+tab_71 = songs(url_71)
+tab_72 = songs(url_72)
+tab_73 = songs(url_73)
+tab_74 = songs(url_74)
+tab_75 = songs(url_75)
+tab_76 = songs(url_76)
+tab_77 = songs(url_77)
+tab_78 = songs(url_78)
+tab_79 = songs(url_79)
+tab_80 = songs(url_80)
+tab_81 = songs(url_81)
+tab_82 = songs(url_82)
+tab_83 = songs(url_83)
+tab_84 = songs(url_84)
+tab_85 = songs(url_85)
+tab_86 = songs(url_86)
+tab_87 = songs(url_87)
+tab_88 = songs(url_88)
+tab_89 = songs(url_89)
+tab_90 = songs(url_90)
+tab_91 = songs(url_92)
+tab_93 = songs(url_93)
+tab_94 = songs(url_94)
+tab_95 = songs(url_95)
+tab_96 = songs(url_96)
+tab_97 = songs(url_97)
+tab_98 = songs(url_98)
+tab_99 = songs(url_99)
+tab_00 = songs(url_00)
+tab_01 = songs(url_01)
+tab_02 = songs(url_02)
+tab_03 = songs(url_03)
+tab_04 = songs(url_04)
+tab_05 = songs(url_05)
+tab_06 = songs(url_06)
+tab_07 = songs(url_07)
+tab_08 = songs(url_08)
+tab_09 = songs(url_09)
+tab_10 = songs(url_10)
+tab_11 = songs(url_11)
+tab_11 = songs(url_11)
 ```
 
