@@ -99,6 +99,5 @@ table = function(x) {
   return(tab)
 }
 
-table("https://en.wikipedia.org/wiki/Billboard_year-end_top_50_singles_of_1958")
 ```
 
