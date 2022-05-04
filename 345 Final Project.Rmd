@@ -10,8 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(rvest)
 ```
+The task was to evaluate the repetitiveness of the most popular songs over time.  The goal of this project was to determine if song repetitiveness has changed over time, and find any other relative patterns within the data.  This was accomplished in three main steps:  creating a list of top songs from 1958 to 2021, gathering the lyrics, and geenerating measures of song repetitiveness.
 
-```{r,eval=FALSE}
+The first step involves creating a list of the top songs from 1958 to 2021.  This was done by reading in each year's 'Billboard Year-End Hot 100 Singles' url from Wikipedia.  The data gathered from the urls proved to have some inconsistencies.  For example, the billboard chart from the year 1958 only includes 50 songs while every other year provides the top 100 songs.  The urls for the years 2012 and 2013 read in as being empty and contained no data, so the songs for these years were omitted from analysis.
+
+```{r,eval=FALSE,include=FALSE}
 ## Read in top 100 songs for each year from 1958-2021
 ## URLs for the years 2012 and 2013 contained no data so they were omitted from analysis
 url_58 = "https://en.wikipedia.org/wiki/Billboard_year-end_top_50_singles_of_1958"
@@ -79,8 +82,9 @@ url_19 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_20
 url_20 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_2020"
 url_21 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_2021"
 ```
+The function 'songs' was then created in order to take each year's url data and transform it into table format.  This function takes in a url and a number n that can range from 1 to 100, and its default value is 10.  The input n represents the number of songs to be returned for each year.  Recall that the 'songs' function can only return up to 50 songs for the year 1958, but can generate up to 100 songs for every other year.  The tables this function returns include the song title, artist, and number ranking on the billboard chart.  The 'songs' function was called for each year in order to generate a table of the top 10 songs for each year from 1958 to 2021.  A coloumn designating year was then added to each year's table.  Lastly, all of the separate year tables were binded together by row to form a single data frame containing 620 songs. 
 
-```{r,eval=FALSE}
+```{r,eval=FALSE,include=FALSE}
 ## 'songs' function takes in URL and a number n (1 to 100, default is 10) to output a table of top songs of length n.
 songs = function(url,n=10) {
   data = read_html(url)
@@ -92,7 +96,7 @@ songs = function(url,n=10) {
 }
 ```
 
-```{r,eval=FALSE}
+```{r,eval=FALSE,include=FALSE}
 ## Generate tables of top songs for each year and add column specifying year.
 ## Years 2012 and 2013 were not used.
 tab_58 = songs(url_58)
@@ -221,20 +225,19 @@ tab_21 = songs(url_21)
 tab_21 = tab_21 %>% mutate(Year = 2021)
 ```
 
-```{r,eval=FALSE}
+```{r,eval=FALSE,include=FALSE}
 ## Bind all of the separate year tables together by row to form a single data frame.
 ## Years 2012 and 2013 were not used.
 data_songs = rbind(tab_58, tab_59, tab_60, tab_61, tab_62, tab_63, tab_64, tab_65, tab_66, tab_67, tab_68, tab_69, tab_70, tab_71, tab_72, tab_73, tab_74, tab_75, tab_76, tab_77, tab_78, tab_79, tab_80, tab_81, tab_82, tab_83, tab_84, tab_85, tab_86, tab_87, tab_88, tab_89, tab_90, tab_91, tab_92, tab_93, tab_94, tab_95, tab_96, tab_97, tab_98, tab_99, tab_00, tab_01, tab_02, tab_03, tab_04, tab_05, tab_06, tab_07, tab_08, tab_09, tab_10, tab_11, tab_14, tab_15, tab_16, tab_17, tab_18, tab_19, tab_20, tab_21) 
 
 ## Make 'No.' column numeric
 data_songs = data_songs %>% transform(No. = as.numeric(No.))
-## Group songs by 'No.' in ascending order
-data_songs = data_songs %>% group_by(No.) %>% arrange(No.)
+
 ## Save data frame
 save(data_songs,file="songs.Rda")
 ```
 
-```{r}
+```{r,include=FALSE}
 ## Load saved data frame for future use
 load("songs.Rda")
 data_songs
