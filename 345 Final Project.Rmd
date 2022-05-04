@@ -1,56 +1,58 @@
 ---
 title: "345 Final Project"
-author: "Colin Kalsbeek, Abby Schmidt, Katie Erlandson"
+author: "Abby Schmidt, Colin Kalsbeek, Katie Erlandson"
 date: "4/21/2022"
 output: word_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
 library(tidyverse)
+library(tidytext)
 library(rvest)
+library(tm)
+library(textclean)
 ```
-The task was to evaluate the repetitiveness of the most popular songs over time.  The goal of this project was to determine if song repetitiveness has changed over time, and find any other relative patterns within the data.  This was accomplished in three main steps:  creating a list of top songs from 1958 to 2021, gathering the lyrics, and geenerating measures of song repetitiveness.
 
-The first step involves creating a list of the top songs from 1958 to 2021.  This was done by reading in each year's 'Billboard Year-End Hot 100 Singles' url from Wikipedia.  The data gathered from the urls proved to have some inconsistencies.  For example, the billboard chart from the year 1958 only includes 50 songs while every other year provides the top 100 songs.  The urls for the years 2012 and 2013 read in as being empty and contained no data, so the songs for these years were omitted from analysis.
 
-```{r,eval=FALSE,include=FALSE}
-## Read in top 100 songs for each year from 1958-2021
-## URLs for the years 2012 and 2013 contained no data so they were omitted from analysis
+
+```{r}
+# urls for top songs of each year 1958-2021
 url_58 = "https://en.wikipedia.org/wiki/Billboard_year-end_top_50_singles_of_1958"
-url_59 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1959"
-url_60 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1960"
-url_61 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1961" 
-url_62 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1962"
-url_63 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1963"
-url_64 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1964"
-url_65 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1965"
-url_66 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1966"
-url_67 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1967"
-url_68 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1968"
-url_69 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1969"
-url_70 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1970"
-url_71 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1971"
+ url_59 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1959"
+ url_60 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1960"
+ url_61 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1961"
+ url_62 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1962"
+ url_63 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1963"
+ url_64 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1964"
+ url_65 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1965"
+ url_66 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1966"
+ url_67 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1967"
+ url_68 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1968"
+ url_69 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1969"
+ url_70 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1970"
+ url_71 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1971"
 url_72 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1972"
-url_73 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1973"
-url_74 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1974"
-url_75 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1975"
-url_76 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1976"
-url_77 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1977"
-url_78 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1978"
-url_79 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1979"
-url_80 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1980"
-url_81 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1981"
-url_82 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1982"
-url_83 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1983"
-url_84 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1984"
-url_85 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1985"
-url_86 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1986"
-url_87 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1987"
-url_88 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1988"
-url_89 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1989"
-url_90 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1990"
-url_91 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1991"
+ url_73 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1973"
+ url_74 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1974"
+ url_75 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1975"
+ url_76 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1976"
+ url_77 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1977"
+ url_78 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1978"
+ url_79 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1979"
+ url_80 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1980"
+ url_81 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1981"
+ url_82 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1982"
+ url_83 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1983"
+ url_84 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1984"
+ url_85 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1985"
+ url_86 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1986"
+ url_87 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1987"
+ url_88 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1988"
+ url_89 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1989"
+ url_90 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1990"
+ url_91 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1991"
 url_92 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1992"
 url_93 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1993"
 url_94 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1994"
@@ -81,164 +83,874 @@ url_18 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_20
 url_19 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_2019"
 url_20 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_2020"
 url_21 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_2021"
+ 
 ```
-The function 'songs' was then created in order to take each year's url data and transform it into table format.  This function takes in a url and a number n that can range from 1 to 100, and its default value is 10.  The input n represents the number of songs to be returned for each year.  Recall that the 'songs' function can only return up to 50 songs for the year 1958, but can generate up to 100 songs for every other year.  The tables this function returns include the song title, artist, and number ranking on the billboard chart.  The 'songs' function was called for each year in order to generate a table of the top 10 songs for each year from 1958 to 2021.  A coloumn designating year was then added to each year's table.  Lastly, all of the separate year tables were binded together by row to form a single data frame containing 620 songs. 
 
-```{r,eval=FALSE,include=FALSE}
-## 'songs' function takes in URL and a number n (1 to 100, default is 10) to output a table of top songs of length n.
-songs = function(url,n=10) {
-  data = read_html(url)
-  tab = data %>% html_nodes("table") %>% .[1]
+```{r}
+songs = function(x, n=10) {
+  url = x
+  a = read_html(url)
+  tab = a %>% html_nodes("table") %>% .[1]
   tab = tab %>% html_table %>% .[[1]] 
   tab = tab %>% setNames(c("No.", "Title", "Artist(s)"))
-  tab = tab[1:n,] 
+  tab = tab[1:n,]
   return(tab)
 }
 ```
 
-```{r,eval=FALSE,include=FALSE}
-## Generate tables of top songs for each year and add column specifying year.
-## Years 2012 and 2013 were not used.
+
+```{r}
+# urls for lyrics
+no1_58 = "https://www.azlyrics.com/lyrics/engelberthumperdinck/volare.html"
+no2_58 = "https://www.azlyrics.com/lyrics/everlybrothers/allihavetodoisdream.html"
+no3_58 = "https://www.azlyrics.com/lyrics/elvispresley/ibegofyou.html"
+no4_58 = " " # NULL # not on az 
+no5_58 = " " # NULL # not on az 
+no6_58 = "https://www.azlyrics.com/lyrics/andywilliams/sailalongsilverymoon.html"
+no7_58 = "https://www.azlyrics.com/lyrics/perrycomo/catchafallingstar.html"
+no8_58 = " " # NULL # not on az -> "tequila" x3 = entire song
+no9_58 = "https://www.azlyrics.com/lyrics/barrymanilow/itsallinthegame.html"
+no10_58 = "https://www.azlyrics.com/lyrics/deanmartin/returntome.html"
+no1_59 = "https://www.azlyrics.com/lyrics/johnnyhorton/thebattleofneworleans.html"
+no2_59 = "https://www.azlyrics.com/lyrics/bobbydarin/macktheknife.html"
+no3_59 = " " # NULL # not on az 
+no4_59 = "https://www.azlyrics.com/lyrics/barrymanilow/venus.html"
+no5_59 = "https://www.azlyrics.com/lyrics/paulanka/lonelyboy.html"
+no6_59 = "https://www.azlyrics.com/lyrics/bobbydarin/dreamlover.html"
+no7_59 = "https://www.azlyrics.com/lyrics/tokens/thethreebellsthejimmybrownsong.html"
+no8_59 = "https://www.azlyrics.com/lyrics/fleetwoods/comesoftlytome.html"
+no9_59 = " " # NULL # not on az (loose covers are by neil diamond and knight paul)
+no10_59 = "https://www.azlyrics.com/lyrics/fleetwoods/mrblue.html"
+no1_60 = "https://www.azlyrics.com/lyrics/julielondon/themefromasummerplace.html"
+no2_60 = "https://www.azlyrics.com/lyrics/jimreeves/hellhavetogo.html"
+no3_60 = "https://www.azlyrics.com/lyrics/everlybrothers/cathysclown.html"
+no4_60 = "https://www.azlyrics.com/lyrics/johnnypreston/runningbear.html"
+no5_60 = "https://www.azlyrics.com/lyrics/markdinning/teenangel.html"
+no6_60 = "https://www.azlyrics.com/lyrics/brendalee/imsorry.html"
+no7_60 = "https://www.azlyrics.com/lyrics/elvispresley/itsnowornever.html"
+no8_60 = " " # NULL # not on az
+no9_60 = "https://www.azlyrics.com/lyrics/elvispresley/stuckonyou.html"
+no10_60 = "https://www.azlyrics.com/lyrics/chubbychecker/thetwist.html"
+no1_61 = "https://www.azlyrics.com/lyrics/garylewistheplayboys/tossinandturnin.html"
+no2_61 = "https://www.azlyrics.com/lyrics/patsycline/ifalltopieces.html"
+no3_61 = " " # NULL # not on az
+no4_61 = "https://www.azlyrics.com/lyrics/royorbison/crying.html"
+no5_61 = "https://www.azlyrics.com/lyrics/delshannon/runaway.html"
+no6_61 = "https://www.azlyrics.com/lyrics/nittygrittydirtband/mytruestory.html"
+no7_61 = "https://www.azlyrics.com/lyrics/chubbychecker/ponytime.html"
+no8_61 = " " # NULL # not on az lyrics
+no9_61 = " " # NULL # not on az
+no10_61 = "https://www.azlyrics.com/lyrics/elvispresley/woodenheartmussidenn.html"
+no1_62 = "https://www.azlyrics.com/lyrics/drifters/strangerontheshore.html"
+no2_62 = "https://www.azlyrics.com/lyrics/raycharles/icantstoplovingyou.html"
+no3_62 = "https://www.azlyrics.com/lyrics/marvelettes/mashedpotatotime.html"
+no4_62 = "https://www.azlyrics.com/lyrics/bobbyvinton/rosesareredmylove.html"
+no5_62 = " " # NULL # not on az lyrics
+no6_62 = "https://www.azlyrics.com/lyrics/carpenters/johnnyangel.html"
+no7_62 = "https://www.azlyrics.com/lyrics/littleeva/thelocomotion.html"
+no8_62 = " " # NULL # not on az lyrics
+no9_62 = "https://www.azlyrics.com/lyrics/chubbychecker/thetwist.html"
+no10_62 = " " # NULL # not on az 
+no1_63 = "https://www.azlyrics.com/lyrics/beachboys/surfinusa.html"
+no2_63 = "https://www.azlyrics.com/lyrics/skeeterdavis/theendoftheworld.html"
+no3_63 = "https://www.azlyrics.com/lyrics/jandean/rhythmoftherain.html"
+no4_63 = "https://www.azlyrics.com/lyrics/chiffons/hessofine.html"
+no5_63 = "https://www.azlyrics.com/lyrics/barrymanilow/bluevelvet.html"
+no6_63 = " " # NULL # not on az lyrics 
+no7_63 = "https://www.azlyrics.com/lyrics/steviewonder/fingertipspart2.html"
+no8_63 = "https://www.azlyrics.com/lyrics/andywilliams/cantgetusedtolosingyou.html"
+no9_63 = "https://www.azlyrics.com/lyrics/angels-usa/myboyfriendsback.html"
+no10_63 = "https://www.azlyrics.com/lyrics/kyusakamoto/sukiyakiuewomuitearukou.html"
+no1_64 = "https://www.azlyrics.com/lyrics/beatles/iwanttoholdyourhand.html"
+no2_64 = "https://www.azlyrics.com/lyrics/beatles/shelovesyou.html"
+no3_64 = "https://www.azlyrics.com/lyrics/louisarmstrong/hellodolly.html"
+no4_64 = "https://www.azlyrics.com/lyrics/royorbison/ohprettywoman.html"
+no5_64 = "https://www.azlyrics.com/lyrics/beachboys/igetaround.html"
+no6_64 = "https://www.azlyrics.com/lyrics/deanmartin/everybodylovessomebody.html"
+no7_64 = "https://www.azlyrics.com/lyrics/marywells/myguy.html"
+no8_64 = "https://www.azlyrics.com/lyrics/dollyparton/wellsinginthesunshine.html"
+no9_64 = "https://www.azlyrics.com/lyrics/pearljam/lastkiss.html"
+no10_64 = "https://www.azlyrics.com/lyrics/emmabunton/wheredidourlovego.html"
+no1_65 = "https://www.azlyrics.com/lyrics/samtheshamandthepharaohs/woolybully.html"
+no2_65 = "https://www.azlyrics.com/lyrics/fourtops/icanthelpmyselfsugarpiehoneybunch.html"
+no3_65 = "https://www.azlyrics.com/lyrics/rollingstones/icantgetnosatisfaction.html"
+no4_65 = "https://www.azlyrics.com/lyrics/serenaryder/youwereonmymind.html"
+no5_65 = "https://www.azlyrics.com/lyrics/righteousbrothers/youvelostthatlovinfeelin.html"
+no6_65 = "https://www.azlyrics.com/lyrics/petulaclark/downtown.html"
+no7_65 = "https://www.azlyrics.com/lyrics/beatles/help.html"
+no8_65 = "https://www.azlyrics.com/lyrics/hermanshermits/cantyouhearmyheartbeat.html"
+no9_65 = "https://www.azlyrics.com/lyrics/elvispresley/cryinginthechapel.html"
+no10_65 = "https://www.azlyrics.com/lyrics/temptations/mygirl.html"
+no1_66 = "https://www.azlyrics.com/lyrics/mamasandthepapas/californiadreamin.html"
+no2_66 = "https://www.azlyrics.com/lyrics/thelmahouston/96tears.html"
+no3_66 = "https://www.azlyrics.com/lyrics/jimmyruffin/whatbecomesofthebrokenhearted.html"
+no4_66 = "https://www.azlyrics.com/lyrics/monkees/lasttraintoclarksville.html"
+no5_66 = "https://www.azlyrics.com/lyrics/gloriagaynor/reachoutillbethere.html"
+no6_66 = "https://www.azlyrics.com/lyrics/nancysinatra/thesebootsaremadeforwalkin.html"
+no7_66 = " " # NULL # not on az 
+no8_66 = "https://www.azlyrics.com/lyrics/franksinatra/strangersinthenight.html"
+no9_66 = "https://www.azlyrics.com/lyrics/paulreveretheraiders/kicks.html"
+no10_66 = " " # NULL # not on az
+no1_67 = "https://www.azlyrics.com/lyrics/lulu/tosirwithlove.html"
+no2_67 = "https://www.azlyrics.com/lyrics/boxtops/theletter.html"
+no3_67 = "https://www.azlyrics.com/lyrics/bobbiegentry/odetobilliejoe.html"
+no4_67 = "https://www.azlyrics.com/lyrics/association/windy.html"
+no5_67 = "https://www.azlyrics.com/lyrics/monkees/imabeliever.html"
+no6_67 = "https://www.azlyrics.com/lyrics/doors/lightmyfire.html"
+no7_67 = "https://www.azlyrics.com/lyrics/franksinatra/somethinstupid.html"
+no8_67 = "https://www.azlyrics.com/lyrics/turtles/happytogether.html"
+no9_67 = "https://www.azlyrics.com/lyrics/rascals/groovin.html"
+no10_67 = "https://www.azlyrics.com/lyrics/frankievalli/canttakemyeyesoffyou.html"
+no1_68 = "https://www.azlyrics.com/lyrics/beatles/heyjude.html"
+no2_68 = "https://www.azlyrics.com/lyrics/andywilliams/loveisblue.html"
+no3_68 = "https://www.azlyrics.com/lyrics/bobbygoldsboro/honey.html"
+no4_68 = "https://www.azlyrics.com/lyrics/otisredding/sittinonthedockofthebay.html"
+no5_68 = "https://www.azlyrics.com/lyrics/rascals/peoplegottobefree.html"
+no6_68 = "https://www.azlyrics.com/lyrics/cream/sunshineofyourlove.html"
+no7_68 = "https://www.azlyrics.com/lyrics/barrymanilow/thisguysinlovewithyou.html"
+no8_68 = " " # NULL # not on az 
+no9_68 = "https://www.azlyrics.com/lyrics/simongarfunkel/mrsrobinson.html"
+no10_68 = " " #NULL # not on az 
+no1_69 = "https://www.azlyrics.com/lyrics/archies/sugarsugar.html"
+no2_69 = "https://www.azlyrics.com/lyrics/5thdimension/aquariusletthesunshinein.html"
+no3_69 = "https://www.azlyrics.com/lyrics/toto/icantgetnexttoyou.html"
+no4_69 = "https://www.azlyrics.com/lyrics/rollingstones/honkytonkwomen.html"
+no5_69 = "https://www.azlyrics.com/lyrics/slythefamilystone/everydaypeople.html"
+no6_69 = "https://www.azlyrics.com/lyrics/tommyroe/dizzy.html"
+no7_69 = "https://www.azlyrics.com/lyrics/slythefamilystone/hotfuninthesummertime.html"
+no8_69 = "https://www.azlyrics.com/lyrics/tomjones/illneverfallinloveagain.html"
+no9_69 = "https://www.azlyrics.com/lyrics/foundations/buildmeupbuttercup.html"
+no10_69 = "https://www.azlyrics.com/lyrics/tommyjamesandtheshondells/crimsonandclover.html"
+no1_70 = "https://www.azlyrics.com/lyrics/simongarfunkel/bridgeovertroubledwater.html"
+no2_70 = "https://www.azlyrics.com/lyrics/carpenters/theylongtobeclosetoyou.html"
+no3_70 = "https://www.azlyrics.com/lyrics/guesswho/americanwoman.html"
+no4_70 = "https://www.azlyrics.com/lyrics/bjthomas/raindropskeepfallinonmyhead.html"
+no5_70 = "https://www.azlyrics.com/lyrics/edwinstarr/war.html"
+no6_70 = "https://www.azlyrics.com/lyrics/dianaross/aintnomountainhighenough.html"
+no7_70 = "https://www.azlyrics.com/lyrics/jackson5/illbethere.html"
+no8_70 = "https://www.azlyrics.com/lyrics/rareearth/getready.html"
+no9_70 = "https://www.azlyrics.com/lyrics/beatles/letitbe.html"
+no10_70 = "https://www.azlyrics.com/lyrics/kimberleylocke/bandofgold.html"
+no1_71 = "https://www.azlyrics.com/lyrics/threedognight/joytotheworld.html"
+no2_71 = "https://www.azlyrics.com/lyrics/rodstewart/maggiemay.html"
+no3_71 = "https://www.azlyrics.com/lyrics/caroleking/itstoolate.html"
+no4_71 = "https://www.azlyrics.com/lyrics/osmonds/onebadapple.html"
+no5_71 = "https://www.azlyrics.com/lyrics/beegees/howcanyoumendabrokenheart.html"
+no6_71 = "https://www.azlyrics.com/lyrics/paulreveretheraiders/indianreservationthelamentofthecherokeereservationindian.html"
+no7_71 = "https://www.azlyrics.com/lyrics/donnyosmond/goawaylittlegirl.html"
+no8_71 = "https://www.azlyrics.com/lyrics/johndenver/takemehomecountryroads.html"
+no9_71 = "https://www.azlyrics.com/lyrics/temptations/justmyimaginationrunningawaywithme.html"
+no10_71 = "https://www.azlyrics.com/lyrics/tonyorlandodawn/knockthreetimes.html"
+no1_72 = "https://www.azlyrics.com/lyrics/robertaflack/thefirsttimeeverisawyourface.html"
+no2_72 = "https://www.azlyrics.com/lyrics/gilbertosullivan/aloneagainnaturally.html"
+no3_72 = "https://www.azlyrics.com/lyrics/donmclean/americanpie.html"
+no4_72 = " " #NULL # not on az 
+no5_72 = "https://www.azlyrics.com/lyrics/sammydavisjr/thecandyman.html"
+no6_72 = " " #NULL # not on az 
+no7_72 = "https://www.azlyrics.com/lyrics/billwithers/leanonme.html"
+no8_72 = "https://www.azlyrics.com/lyrics/macdavis/babydontgethookedonme.html"
+no9_72 = "https://www.azlyrics.com/lyrics/melanie/brandnewkey.html"
+no10_72 = "https://www.azlyrics.com/lyrics/charlierich/daddydontyouwalksofast.html"
+no1_73 = "https://www.azlyrics.com/lyrics/tonyorlandodawn/tieayellowribbonroundtheoleoaktree.html"
+no2_73 = "https://www.azlyrics.com/lyrics/jimcroce/badbadleroybrown.html"
+no3_73 = "https://www.azlyrics.com/lyrics/robertaflack/killingmesoftlywithhissong.html"
+no4_73 = "https://www.azlyrics.com/lyrics/marvingaye/letsgetiton.html"
+no5_73 = "https://www.azlyrics.com/lyrics/corinnebaileyrae/mylove.html"
+no6_73 = "https://www.azlyrics.com/lyrics/kriskristofferson/whyme.html"
+no7_73 = "https://www.azlyrics.com/lyrics/eltonjohn/crocodilerock.html"
+no8_73 = "https://www.azlyrics.com/lyrics/billypreston/willitgoroundincircles.html"
+no9_73 = "https://www.azlyrics.com/lyrics/carlysimon/youresovain.html"
+no10_73 = "https://www.azlyrics.com/lyrics/dianaross/touchmeinthemorning.html"
+no1_74 = "https://www.azlyrics.com/lyrics/barbrastreisand/thewaywewere.html"
+no2_74 = "https://www.azlyrics.com/lyrics/terryjacks/seasonsinthesun.html"
+no3_74 = "https://www.azlyrics.com/lyrics/barrywhite/lovestheme.html"
+no4_74 = "https://www.azlyrics.com/lyrics/redbone/comeandgetyourlove.html"
+no5_74 = "https://www.azlyrics.com/lyrics/jackson5/dancingmachine.html"
+no6_74 = "https://www.azlyrics.com/lyrics/grandfunkrailroad/thelocomotion.html"
+no7_74 = " " #NULL # not on az
+no8_74 = " " #NULL # not on az
+no9_74 = "https://www.azlyrics.com/lyrics/eltonjohn/bennieandthejets.html"
+no10_74 = "https://www.azlyrics.com/lyrics/macdavis/onehellofawoman.html"
+no1_75 = "https://www.azlyrics.com/lyrics/captaintennille/lovewillkeepustogether.html"
+no2_75 = "https://www.azlyrics.com/lyrics/glencampbell/rhinestonecowboy.html"
+no3_75 = "https://www.azlyrics.com/lyrics/eltonjohn/philadelphiafreedom.html"
+no4_75 = "https://www.azlyrics.com/lyrics/freddyfender/beforethenextteardropfalls.html"
+no5_75 = "https://www.azlyrics.com/lyrics/frankievalli/myeyesadoredyou.html"
+no6_75 = "https://www.azlyrics.com/lyrics/grandfunkrailroad/somekindofwonderful.html"
+no7_75 = "https://www.azlyrics.com/lyrics/earthwindandfire/shiningstar.html"
+no8_75 = "https://www.azlyrics.com/lyrics/davidbowie/fame.html"
+no9_75 = "https://www.azlyrics.com/lyrics/neilsedaka/laughterintherain.html"
+no10_75 = "https://www.azlyrics.com/lyrics/eagles/oneofthesenights.html"
+no1_76 = "https://www.azlyrics.com/lyrics/wings/sillylovesongs.html"
+no2_76 = "https://www.azlyrics.com/lyrics/eltonjohn/dontgobreakingmyheart.html"
+no3_76 = " " #NULL # not on az 
+no4_76 = "https://www.azlyrics.com/lyrics/fourseasons/december1963ohwhatanight.html"
+no5_76 = "https://www.azlyrics.com/lyrics/wildcherry/playthatfunkymusic.html"
+no6_76 = "https://www.azlyrics.com/lyrics/manhattans/kissandsaygoodbye.html"
+no7_76 = "https://www.azlyrics.com/lyrics/thelmahouston/lovemachine.html"
+no8_76 = "https://www.azlyrics.com/lyrics/paulsimon/50waystoleaveyourlover.html"
+no9_76 = "https://www.azlyrics.com/lyrics/garywright/loveisalive.html"
+no10_76 = " " #NULL # not on az
+no1_77 = "https://www.azlyrics.com/lyrics/rodstewart/tonightsthenightgonnabealright.html"
+no2_77 = "https://www.azlyrics.com/lyrics/andygibb/ijustwanttobeyoureverything.html"
+no3_77 = "https://www.azlyrics.com/lyrics/emotions/bestofmylove.html"
+no4_77 = "https://www.azlyrics.com/lyrics/barbrastreisand/evergreen.html"
+no5_77 = "https://www.azlyrics.com/lyrics/barbaramandrell/angelinyourarms.html"
+no6_77 = " " #NULL # not on az 
+no7_77 = "https://www.azlyrics.com/lyrics/thelmahouston/dontleavemethisway.html"
+no8_77 = "https://www.azlyrics.com/lyrics/ritacoolidge/yourlovehasliftedmehigherandhigher.html"
+no9_77 = " " #NULL # not on az
+no10_77 = " " #NULL # "  "  " 
+no1_78 = "https://www.azlyrics.com/lyrics/andygibb/shadowdancing.html"
+no2_78 = "https://www.azlyrics.com/lyrics/beegees/nightfever.html"
+no3_78 = "https://www.azlyrics.com/lyrics/debbyboone/youlightupmylife.html"
+no4_78 = "https://www.azlyrics.com/lyrics/beegees/stayinalive.html"
+no5_78 = "https://www.azlyrics.com/lyrics/exile/kissyouallover.html"
+no6_78 = "https://www.azlyrics.com/lyrics/beegees/howdeepisyourlove.html"
+no7_78 = "https://www.azlyrics.com/lyrics/player/babycomeback.html"
+no8_78 = "https://www.azlyrics.com/lyrics/andygibb/loveisthickerthanwater.html"
+no9_78 = "https://www.azlyrics.com/lyrics/tasteofhoney/boogieoogieoogie.html"
+no10_78 = "https://www.azlyrics.com/lyrics/commodores/threetimesalady.html"
+no1_79 = "https://www.azlyrics.com/lyrics/knack/mysharona.html"
+no2_79 = "https://www.azlyrics.com/lyrics/donnasummer/badgirls.html"
+no3_79 = "https://www.azlyrics.com/lyrics/chic/lefreak.html"
+no4_79 = "https://www.azlyrics.com/lyrics/vanillafudge/doyathinkimsexy.html"
+no5_79 = "https://www.azlyrics.com/lyrics/peachesherb/reunited.html"
+no6_79 = "https://www.azlyrics.com/lyrics/gloriagaynor/iwillsurvive.html"
+no7_79 = "https://www.azlyrics.com/lyrics/donnasummer/hotstuff.html"
+no8_79 = "https://www.azlyrics.com/lyrics/williamhung/ymca.html"
+no9_79 = "https://www.azlyrics.com/lyrics/anitaward/ringmybell.html"
+no10_79 = "https://www.azlyrics.com/lyrics/robertjohn/sadeyes.html"
+no1_80 = "https://www.azlyrics.com/lyrics/blondie/callme.html"
+no2_80 = "https://www.azlyrics.com/lyrics/pinkfloyd/anotherbrickinthewallpartii.html"
+no3_80 = "https://www.azlyrics.com/lyrics/olivianewtonjohn/magic.html"
+no4_80 = "https://www.azlyrics.com/lyrics/michaeljackson/rockwithyou.html"
+no5_80 = "https://www.azlyrics.com/lyrics/captaintennille/dothattomeonemoretime.html"
+no6_80 = "https://www.azlyrics.com/lyrics/queen/crazylittlethingcalledlove.html"
+no7_80 = "https://www.azlyrics.com/lyrics/paulmccartney/comingup.html"
+no8_80 = "https://www.azlyrics.com/lyrics/lippsinc/funkytown.html"
+no9_80 = "https://www.azlyrics.com/lyrics/billyjoel/itsstillrockandrolltome.html"
+no10_80 = "https://www.azlyrics.com/lyrics/bettemidler/therose.html"
+no1_81 = "https://www.azlyrics.com/lyrics/kimcarnes/bettedaviseyes.html"
+no2_81 = "https://www.azlyrics.com/lyrics/lionelrichie/endlesslove.html"
+no3_81 = "https://www.azlyrics.com/lyrics/kennyrogers/lady.html"
+no4_81 = "https://www.azlyrics.com/lyrics/johnlennon/justlikestartingover118486.html"
+no5_81 = "https://www.azlyrics.com/lyrics/rickspringfield/jessiesgirl.html"
+no6_81 = "https://www.azlyrics.com/lyrics/koolthegang/celebration.html"
+no7_81 = "https://www.azlyrics.com/lyrics/halloates/kissonmylist.html"
+no8_81 = "https://www.azlyrics.com/lyrics/eddierabbitt/ilovearainynight.html"
+no9_81 = "https://www.azlyrics.com/lyrics/dollyparton/9to5.html"
+no10_81 = "https://www.azlyrics.com/lyrics/reospeedwagon/keeponlovingyou.html"
+no1_82 = "https://www.azlyrics.com/lyrics/olivianewtonjohn/physical.html"
+no2_82 = "https://www.azlyrics.com/lyrics/survivor/eyeofthetiger.html"
+no3_82 = "https://www.azlyrics.com/lyrics/joanjettandtheblackhearts/iloverocknroll.html"
+no4_82 = "https://www.azlyrics.com/lyrics/paulmccartney/ebonyandivory.html"
+no5_82 = "https://www.azlyrics.com/lyrics/jgeilsband/centerfold.html"
+no6_82 = "https://www.azlyrics.com/lyrics/humanleague/dontyouwantme.html"
+no7_82 = "https://www.azlyrics.com/lyrics/johnmellencamp/jackanddiane.html"
+no8_82 = "https://www.azlyrics.com/lyrics/johnmellencamp/hurtssogood.html"
+no9_82 = "https://www.azlyrics.com/lyrics/stevemillerband/abracadabra.html"
+no10_82 = "https://www.azlyrics.com/lyrics/chicago/hardtosayimsorrygetaway.html"
+no1_83 = "https://www.azlyrics.com/lyrics/police/everybreathyoutake.html"
+no2_83 = "https://www.azlyrics.com/lyrics/michaeljackson/billiejean.html"
+no3_83 = "https://www.azlyrics.com/lyrics/irenecara/flashdancewhatafeeling.html"
+no4_83 = "https://www.azlyrics.com/lyrics/menatwork/downunder.html"
+no5_83 = "https://www.azlyrics.com/lyrics/michaeljackson/beatit.html"
+no6_83 = "https://www.azlyrics.com/lyrics/bonnietyler/totaleclipseoftheheart.html"
+no7_83 = "https://www.azlyrics.com/lyrics/halloates/maneater.html"
+no8_83 = "https://www.azlyrics.com/lyrics/pattiaustin/babycometome.html"
+no9_83 = "https://www.azlyrics.com/lyrics/michaelsembello/maniac.html"
+no10_83 = "https://www.azlyrics.com/lyrics/eurythmics/sweetdreamsaremadeofthis.html"
+no1_84 = "https://www.azlyrics.com/lyrics/prince/whendovescry.html"
+no2_84 = "https://www.azlyrics.com/lyrics/tinaturner/whatslovegottodowithit.html"
+no3_84 = "https://www.azlyrics.com/lyrics/paulmccartney/saysaysay.html"
+no4_84 = "https://www.azlyrics.com/lyrics/kennyloggins/footloose.html"
+no5_84 = "https://www.azlyrics.com/lyrics/philcollins/againstalloddstakealookatmenow.html"
+no6_84 = "https://www.azlyrics.com/lyrics/vanhalen/jump.html"
+no7_84 = "https://www.azlyrics.com/lyrics/lionelrichie/hello.html"
+no8_84 = "https://www.azlyrics.com/lyrics/yes/ownerofalonelyheart.html"
+no9_84 = "https://www.azlyrics.com/lyrics/rayparkerjr/ghostbusters.html"
+no10_84 = "https://www.azlyrics.com/lyrics/cultureclub/karmachameleon.html"
+no1_85 = "https://www.azlyrics.com/lyrics/wham/carelesswhispers.html"
+no2_85 = "https://www.azlyrics.com/lyrics/madonna/likeavirgin.html"
+no3_85 = "https://www.azlyrics.com/lyrics/wham/wakemeupbeforeyougogo.html"
+no4_85 = "https://www.azlyrics.com/lyrics/foreigner/iwanttoknowwhatloveis.html"
+no5_85 = "https://www.azlyrics.com/lyrics/chakakhan/ifeelforyou.html"
+no6_85 = "https://www.azlyrics.com/lyrics/halloates/outoftouch.html"
+no7_85 = "https://www.azlyrics.com/lyrics/tearsforfears/everybodywantstoruletheworld.html"
+no8_85 = "https://www.azlyrics.com/lyrics/direstraits/moneyfornothing.html"
+no9_85 = "https://www.azlyrics.com/lyrics/madonna/crazyforyou.html"
+no10_85 = "https://www.azlyrics.com/lyrics/aha/takeonme.html"
+no1_86 = "https://www.azlyrics.com/lyrics/dionnewarwick/thatswhatfriendsarefor.html"
+no2_86 = "https://www.azlyrics.com/lyrics/lionelrichie/sayyousayme.html"
+no3_86 = "https://www.azlyrics.com/lyrics/klymaxx/imissyou.html"
+no4_86 = "https://www.azlyrics.com/lyrics/pattilabelle/onmyown.html"
+no5_86 = "https://www.azlyrics.com/lyrics/mrmister/brokenwings.html"
+no6_86 = "https://www.azlyrics.com/lyrics/whitneyhouston/howwilliknow.html"
+no7_86 = "https://www.azlyrics.com/lyrics/eddiemurphy/partyallthetime.html"
+no8_86 = "https://www.azlyrics.com/lyrics/survivor/burningheart.html"
+no9_86 = "https://www.azlyrics.com/lyrics/mrmister/kyrie.html"
+no10_86 = "https://www.azlyrics.com/lyrics/blow/greatestloveofall.html"
+no1_87 = "https://www.azlyrics.com/lyrics/bangles/walklikeanegyptian.html"
+no2_87 = "https://www.azlyrics.com/lyrics/heart/alone.html"
+no3_87 = "https://www.azlyrics.com/lyrics/gregoryabbott/shakeyoudown.html"
+no4_87 = "https://www.azlyrics.com/lyrics/whitneyhouston/iwannadancewithsomebody.html"
+no5_87 = " " # NULL # not on az
+no6_87 = " " #NULL # "  "  "
+no7_87 = "https://www.azlyrics.com/lyrics/whitesnake/hereigoagain125279.html"
+no8_87 = "https://www.azlyrics.com/lyrics/brucehornsby/thewayitis.html"
+no9_87 = "https://www.azlyrics.com/lyrics/bobseger/shakedown.html"
+no10_87 = "https://www.azlyrics.com/lyrics/bonjovi/livinonaprayer.html"
+no1_88 = "https://www.azlyrics.com/lyrics/georgemichael/faith.html"
+no2_88 = "https://www.azlyrics.com/lyrics/inxs/needyoutonight.html"
+no3_88 = "https://www.azlyrics.com/lyrics/georgeharrison/gotmymindsetonyou.html"
+no4_88 = "https://www.azlyrics.com/lyrics/rickastley/nevergonnagiveyouup.html"
+no5_88 = "https://www.azlyrics.com/lyrics/gunsnroses/sweetchildomine.html"
+no6_88 = "https://www.azlyrics.com/lyrics/whitneyhouston/soemotional.html"
+no7_88 = "https://www.azlyrics.com/lyrics/belindacarlisle/heavenisaplaceonearth.html"
+no8_88 = "https://www.azlyrics.com/lyrics/tiffany/couldvebeen.html"
+no9_88 = "https://www.azlyrics.com/lyrics/breathe/handstoheaven.html"
+no10_88 = "https://www.azlyrics.com/lyrics/stevewinwood/rollwithit.html"
+no1_89 = "https://www.azlyrics.com/lyrics/chicago/lookaway.html"
+no2_89 = "https://www.azlyrics.com/lyrics/bobbybrown/myprerogative.html"
+no3_89 = "https://www.azlyrics.com/lyrics/poison/everyrosehasitsthorn.html"
+no4_89 = "https://www.azlyrics.com/lyrics/paulaabdul/straightup.html"
+no5_89 = "https://www.azlyrics.com/lyrics/janetjackson/missyoumuch.html"
+no6_89 = "https://www.azlyrics.com/lyrics/paulaabdul/coldhearted.html"
+no7_89 = "https://www.azlyrics.com/lyrics/bettemidler/windbeneathmywings.html"
+no8_89 = "https://www.azlyrics.com/lyrics/millivanilli/girlyouknowitstrue.html"
+no9_89 = "https://www.azlyrics.com/lyrics/peterframpton/babyiloveyourway.html"
+no10_89 = "https://www.azlyrics.com/lyrics/anitabaker/givingyouthebestthatigot.html"
+no1_90 = "https://www.azlyrics.com/lyrics/wilsonphillips/holdon.html"
+no2_90 = "https://www.azlyrics.com/lyrics/roxette/itmusthavebeenlove.html"
+no3_90 = "https://www.azlyrics.com/lyrics/sineadoconnor/nothingcompares2u.html"
+no4_90 = "https://www.azlyrics.com/lyrics/bellbivdevoe/poison.html"
+no5_90 = "https://www.azlyrics.com/lyrics/madonna/vogue.html"
+no6_90 = "https://www.azlyrics.com/lyrics/mariahcarey/visionoflove.html"
+no7_90 = "https://www.azlyrics.com/lyrics/philcollins/anotherdayinparadise.html"
+no8_90 = "https://www.azlyrics.com/lyrics/philcollins/anotherdayinparadise.html"
+no9_90 = "https://www.azlyrics.com/lyrics/billyidol/cradleoflove.html"
+no10_90 = "https://www.azlyrics.com/lyrics/bonjovi/blazeofglory.html"
+no1_91 = "https://www.azlyrics.com/lyrics/bryanadams/everythingidoidoitforyou.html"
+no2_91 = "https://www.azlyrics.com/lyrics/bryanadams/everythingidoidoitforyou.html"
+no3_91 = "https://www.azlyrics.com/lyrics/bobsinclar/everybodydancenow.html"
+no4_91 = "https://www.azlyrics.com/lyrics/paulaabdul/rushrush.html"
+no5_91 = " " # NULL # not on az
+no6_91 = "https://www.azlyrics.com/lyrics/emf/unbelievable.html"
+no7_91 = "https://www.azlyrics.com/lyrics/extreme/morethanwords.html"
+no8_91 = "https://www.azlyrics.com/lyrics/pyt/ilikethewaythekissinggame.html"
+no9_91 = "https://www.azlyrics.com/lyrics/surface/thefirsttime.html"
+no10_91 = "https://www.azlyrics.com/lyrics/amygrant/babybaby.html"
+no1_92 = "https://www.azlyrics.com/lyrics/boyziimen/endoftheroad-twenty.html"
+no2_92 = "https://www.azlyrics.com/lyrics/sirmixalot/babygotback.html"
+no3_92 = "https://www.azlyrics.com/lyrics/kriskross/jump.html"
+no4_92 = "https://www.azlyrics.com/lyrics/vanessawilliams/savethebestforlast.html"
+no5_92 = "https://www.azlyrics.com/lyrics/tlc/babybabybaby.html"
+no6_92 = "https://www.azlyrics.com/lyrics/ericclapton/tearsinheaven.html"
+no7_92 = "https://www.azlyrics.com/lyrics/envogue/mylovinyourenevergonnagetit.html"
+no8_92 = "https://www.azlyrics.com/lyrics/redhotchilipeppers/underthebridge.html"
+no9_92 = "https://www.azlyrics.com/lyrics/colormebadd/all4love.html"
+no10_92 = "https://www.azlyrics.com/lyrics/jonsecada/justanotherday.html"
+no1_93 = "https://www.azlyrics.com/lyrics/whitneyhouston/iwillalwaysloveyou.html"
+no2_93 = "https://www.azlyrics.com/lyrics/crazyfrog/whoompthereitis.html"
+no3_93 = "https://www.azlyrics.com/lyrics/ub40/icanthelpfallinginlovewithyou.html"
+no4_93 = "https://www.azlyrics.com/lyrics/janetjackson/thatsthewaylovegoes.html"
+no5_93 = "https://www.azlyrics.com/lyrics/silk/freakme.html"
+no6_93 = "https://www.azlyrics.com/lyrics/swv/weak.html"
+no7_93 = "https://www.azlyrics.com/lyrics/shai/ifieverfallinlove.html"
+no8_93 = "https://www.azlyrics.com/lyrics/mariahcarey/dreamlover.html"
+no9_93 = " " # NULL # not on az
+no10_93 = "https://www.azlyrics.com/lyrics/snow/informer.html"
+no1_94 = "https://www.azlyrics.com/lyrics/aceofbase/thesign.html"
+no2_94 = "https://www.azlyrics.com/lyrics/all4one/iswear.html"
+no3_94 = "https://www.azlyrics.com/lyrics/boyziimen/illmakelovetoyou.html"
+no4_94 = "https://www.azlyrics.com/lyrics/celinedion/thepoweroflove.html"
+no5_94 = "https://www.azlyrics.com/lyrics/mariahcarey/hero.html"
+no6_94 = "https://www.azlyrics.com/lyrics/lisaloeb/stay.html"
+no7_94 = "https://www.azlyrics.com/lyrics/tonibraxton/breatheagain.html"
+no8_94 = "https://www.azlyrics.com/lyrics/bryanadams/allforlove.html"
+no9_94 = "https://www.azlyrics.com/lyrics/aceofbase/allthatshewants.html"
+no10_94 = "https://www.azlyrics.com/lyrics/aceofbase/dontturnaround.html"
+no1_95 = "https://www.azlyrics.com/lyrics/coolio/gangstasparadise.html"
+no2_95 = "https://www.azlyrics.com/lyrics/deathcabforcutie/waterfalls.html"
+no3_95 = "https://www.azlyrics.com/lyrics/tlc/creep.html"
+no4_95 = "https://www.azlyrics.com/lyrics/seal/kissfromarose.html"
+no5_95 = "https://www.azlyrics.com/lyrics/boyziimen/onbendedknee.html"
+no6_95 = "https://www.azlyrics.com/lyrics/nightcore/anothernight.html"
+no7_95 = "https://www.azlyrics.com/lyrics/mariahcarey/fantasy.html"
+no8_95 = "https://www.azlyrics.com/lyrics/madonna/takeabow.html"
+no9_95 = "https://www.azlyrics.com/lyrics/monica/donttakeitpersonaljustoneofdemdays.html"
+no10_95 = "https://www.azlyrics.com/lyrics/montelljordan/thisishowwedoit.html"
+no1_96 = "https://www.azlyrics.com/lyrics/losdelrio/macarena.html"
+no2_96 = "https://www.azlyrics.com/lyrics/mariahcarey/onesweetday.html"
+no3_96 = "https://www.azlyrics.com/lyrics/celinedion/becauseyoulovedme.html"
+no4_96 = "https://www.azlyrics.com/lyrics/tonyrich/nobodyknows.html"
+no5_96 = "https://www.azlyrics.com/lyrics/mariahcarey/alwaysbemybaby.html"
+no6_96 = "https://www.azlyrics.com/lyrics/tracychapman/givemeonereason.html"
+no7_96 = "https://www.azlyrics.com/lyrics/bonethugsnharmony/thacrossroads.html"
+no8_96 = "https://www.azlyrics.com/lyrics/donnalewis/iloveyoualwaysforever.html"
+no9_96 = "https://www.azlyrics.com/lyrics/tonibraxton/youremakinmehigh.html"
+no10_96 = "https://www.azlyrics.com/lyrics/keithsweat/twisted.html"
+no1_97 = "https://www.azlyrics.com/lyrics/eltonjohn/candleinthewind.html"
+no2_97 = "https://www.azlyrics.com/lyrics/jewel/foolishgames.html"
+no3_97 = "https://www.azlyrics.com/lyrics/puffdaddy/illbemissingyou.html"
+no4_97 = "https://www.azlyrics.com/lyrics/tonibraxton/unbreakmyheart.html"
+no5_97 = "https://www.azlyrics.com/lyrics/puffdaddy/cantnobodyholdmedown.html"
+no6_97 = "https://www.azlyrics.com/lyrics/rkelly/ibelieveicanfly.html"
+no7_97 = "https://www.azlyrics.com/lyrics/envogue/dontletgolove.html"
+no8_97 = "https://www.azlyrics.com/lyrics/markmorrison/returnofthemack.html"
+no9_97 = "https://www.azlyrics.com/lyrics/leannrimes/howdoilive.html"
+no10_97 = "https://www.azlyrics.com/lyrics/spicegirls/wannabe.html"
+no1_98 = "https://www.azlyrics.com/lyrics/next/tooclose.html"
+no2_98 = "https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_1998"
+no3_98 = "https://www.azlyrics.com/lyrics/shaniatwain/yourestilltheone.html"
+no4_98 = "https://www.azlyrics.com/lyrics/savagegarden/trulymadlydeeply.html"
+no5_98 = "https://www.azlyrics.com/lyrics/leannrimes/howdoilive.html"
+no6_98 = "https://www.azlyrics.com/lyrics/janetjackson/togetheragain.html"
+no7_98 = "https://www.azlyrics.com/lyrics/kcijojo/allmylife.html"
+no8_98 = "https://www.azlyrics.com/lyrics/eltonjohn/candleinthewind1997.html"
+no9_98 = "https://www.azlyrics.com/lyrics/usher/niceandslow.html"
+no10_98 = "https://www.azlyrics.com/lyrics/paulacole/idontwanttowait.html"
+no1_99 = "https://www.azlyrics.com/lyrics/cher/believe.html"
+no2_99 = "https://www.azlyrics.com/lyrics/tlc/noscrubs.html"
+no3_99 = "https://www.azlyrics.com/lyrics/monica/angelofmine.html"
+no4_99 = "https://www.azlyrics.com/lyrics/whitneyhouston/heartbreakhotel.html"
+no5_99 = "https://www.azlyrics.com/lyrics/britneyspears/babyonemoretime.html"
+no6_99 = "https://www.azlyrics.com/lyrics/sixpencenonethericher/kissme.html"
+no7_99 = "https://www.azlyrics.com/lyrics/christinaaguilera/genieinabottle.html"
+no8_99 = "https://www.azlyrics.com/lyrics/sugarray/everymorning.html"
+no9_99 = "https://www.azlyrics.com/lyrics/deborahcox/nobodyssupposedtobehere.html"
+no10_99 = "https://www.azlyrics.com/lyrics/rickymartin/livinlavidaloca.html"
+no1_00 = "https://www.azlyrics.com/lyrics/faithhill/breathe.html"
+no2_00 = "https://www.azlyrics.com/lyrics/santana/smooth.html"
+no3_00 = "https://www.azlyrics.com/lyrics/wyclefjean/mariamaria.html"
+no4_00 = "https://www.azlyrics.com/lyrics/joe/iwannaknow.html"
+no5_00 = "https://www.azlyrics.com/lyrics/verticalhorizon/everythingyouwant.html"
+no6_00 = "https://www.azlyrics.com/lyrics/destinyschild/saymyname.html"
+no7_00 = "https://www.azlyrics.com/lyrics/savagegarden/iknewilovedyou.html"
+no8_00 = "https://www.azlyrics.com/lyrics/lonestar/amazed.html"
+no9_00 = "https://www.azlyrics.com/lyrics/matchbox20/bent.html"
+no10_00 = "https://www.azlyrics.com/lyrics/tonibraxton/hewasntmanenough.html"
+no1_01 = "https://www.azlyrics.com/lyrics/lifehouse/hangingbyamoment.html"  
+no2_01 = "https://www.azlyrics.com/lyrics/aliciakeys/fallin.html"  
+no3_01 = "https://www.azlyrics.com/lyrics/janetjackson/allforyou.html"  
+no4_01 = "https://www.azlyrics.com/lyrics/train/dropsofjupiter.html"  
+no5_01 = "https://www.azlyrics.com/lyrics/jenniferlopez/imrealremix.html"  
+no6_01 = "https://www.azlyrics.com/lyrics/matchbox20/ifyouregone.html"
+no7_01 = "https://www.azlyrics.com/lyrics/eve/letmeblowyamind.html"  
+no8_01 = "https://www.azlyrics.com/lyrics/dido/thankyou.html"
+no9_01 = "https://www.azlyrics.com/lyrics/lennykravitz/again.html"
+no10_01 = "https://www.azlyrics.com/lyrics/destinyschild/independentwomen.html"
+no1_02 = "https://www.azlyrics.com/lyrics/nickelback/howyouremindme.html"
+no2_02 = "https://www.azlyrics.com/lyrics/ashanti/foolish.html"
+no3_02 = "https://www.azlyrics.com/lyrics/nelly/hotinherre.html"
+no4_02 = "https://www.azlyrics.com/lyrics/nelly/dilemma.html"
+no5_02 = "https://www.azlyrics.com/lyrics/calling/whereveryouwillgo.html"
+no6_02 = "https://www.azlyrics.com/lyrics/vanessacarlton/athousandmiles.html"
+no7_02 = "https://www.azlyrics.com/lyrics/linkinpark/intheend.html"
+no8_02 = "https://www.azlyrics.com/lyrics/fatjoe/whatsluv.html"
+no9_02 = "https://www.azlyrics.com/lyrics/usher/ugotitbad.html"
+no10_02 = "https://www.azlyrics.com/lyrics/puddleofmudd/blurry.html"
+no1_03 = "https://www.azlyrics.com/lyrics/50cent/indaclub.html"
+no2_03 = "https://www.azlyrics.com/lyrics/rkelly/ignition.html"
+no3_03 = "https://www.azlyrics.com/lyrics/seanpaul/getbusy.html"
+no4_03 = "https://www.azlyrics.com/lyrics/beyonceknowles/crazyinlove.html"
+no5_03 = "https://www.azlyrics.com/lyrics/3doorsdown/whenimgone.html"
+no6_03 = "https://www.azlyrics.com/lyrics/matchbox20/unwell.html"
+no7_03 = "https://www.azlyrics.com/lyrics/chingy/rightthurr.html"
+no8_03 = "https://www.azlyrics.com/lyrics/aaliyah/missyou.html"
+no9_03 = "https://www.azlyrics.com/lyrics/kidrock/picture.html"
+no10_03 = "https://www.azlyrics.com/lyrics/evanescence/bringmetolife.html"
+no1_04 = "https://www.azlyrics.com/lyrics/usher/yeah.html"
+no2_04 = "https://www.azlyrics.com/lyrics/usher/burn.html"
+no3_04 = "https://www.azlyrics.com/lyrics/aliciakeys/ifiaintgotyou.html"
+no4_04 = "https://www.azlyrics.com/lyrics/maroon5/thislove.html"
+no5_04 = "https://www.azlyrics.com/lyrics/outkast/thewayyoumove.html"
+no6_04 = "https://www.azlyrics.com/lyrics/hoobastank/thereason.html"
+no7_04 = "https://www.azlyrics.com/lyrics/mariowinans/idontwannaknow.html"
+no8_04 = "https://www.azlyrics.com/lyrics/outkast/heyya.html"
+no9_04 = "https://www.azlyrics.com/lyrics/ciara/goodies.html"
+no10_04 = "https://www.azlyrics.com/lyrics/terrorsquad/leanback.html"
+no1_05 = "https://www.azlyrics.com/lyrics/mariahcarey/webelongtogether.html"
+no2_05 = "https://www.azlyrics.com/lyrics/gwenstefani/hollabackgirl.html"
+no3_05 = "https://www.azlyrics.com/lyrics/mario/letmeloveyou.html"
+no4_05 = "https://www.azlyrics.com/lyrics/kellyclarkson/sinceubeengone.html"
+no5_05 = "https://www.azlyrics.com/lyrics/ciara/12step.html"
+no6_05 = "https://www.azlyrics.com/lyrics/kanyewest/golddigger.html"
+no7_05 = "https://www.azlyrics.com/lyrics/greenday/boulevardofbrokendreams.html"
+no8_05 = "https://www.azlyrics.com/lyrics/50cent/candyshop.html"
+no9_05 = "https://www.azlyrics.com/lyrics/pussycatdolls/dontcha.html"
+no10_05 = "https://www.azlyrics.com/lyrics/kellyclarkson/behindthesehazeleyes.html"
+no1_06 = "https://www.azlyrics.com/lyrics/danielpowter/badday.html"
+no2_06 = "https://www.azlyrics.com/lyrics/seanpaul/temperature.html"
+no3_06 = "https://www.azlyrics.com/lyrics/nellyfurtado/promiscuous.html"
+no4_06 = "https://www.azlyrics.com/lyrics/jamesblunt/yourebeautiful.html"
+no5_06 = "https://www.azlyrics.com/lyrics/shakira/hipsdontlie.html"
+no6_06 = "https://www.azlyrics.com/lyrics/natashabedingfield/unwritten.html"
+no7_06 = "https://www.azlyrics.com/lyrics/gnarlsbarkley/crazy.html"
+no8_06 = "https://www.azlyrics.com/lyrics/chamillionaire/ridin.html"
+no9_06 = "https://www.azlyrics.com/lyrics/justintimberlake/sexyback.html"
+no10_06 = "https://www.azlyrics.com/lyrics/beyonceknowles/checkonit.html"
+no1_07 = "https://www.azlyrics.com/lyrics/beyonceknowles/irreplaceable.html"
+no2_07 = "https://www.azlyrics.com/lyrics/rihanna/umbrella.html"
+no3_07 = "https://www.azlyrics.com/lyrics/gwenstefani/thesweetescape.html"
+no4_07 = "https://www.azlyrics.com/lyrics/fergie/biggirlsdontcry.html"
+no5_07 = "https://www.azlyrics.com/lyrics/tpain/buyuadrankshawtysnappin.html"
+no6_07 = "https://www.azlyrics.com/lyrics/carrieunderwood/beforehecheats.html"
+no7_07 = "https://www.azlyrics.com/lyrics/plainwhitets/heytheredelilah.html"
+no8_07 = "https://www.azlyrics.com/lyrics/akon/iwannaloveyou.html"
+no9_07 = "https://www.azlyrics.com/lyrics/nellyfurtado/sayitright.html"
+no10_07 = "https://www.azlyrics.com/lyrics/fergie/glamorous.html"
+no1_08 = "https://www.azlyrics.com/lyrics/florida/low.html"
+no2_08 = "https://www.azlyrics.com/lyrics/leonalewis/bleedinglove.html"
+no3_08 = "https://www.azlyrics.com/lyrics/aliciakeys/noone.html"
+no4_08 = "https://www.azlyrics.com/lyrics/lilwayne/lollipop.html"
+no5_08 = "https://www.azlyrics.com/lyrics/timbaland/apologize.html"
+no6_08 = "https://www.azlyrics.com/lyrics/jordinsparks/noair.html"
+no7_08 = "https://www.azlyrics.com/lyrics/sarabareilles/lovesong.html"
+no8_08 = "https://www.azlyrics.com/lyrics/usher/loveinthisclub.html"
+no9_08 = "https://www.azlyrics.com/lyrics/chrisbrown/withyou.html"
+no10_08 = "https://www.azlyrics.com/lyrics/chrisbrown/forever.html"
+no1_09 = "https://www.azlyrics.com/lyrics/blackeyedpeas/boomboompow.html"
+no2_09 = "https://www.azlyrics.com/lyrics/ladygaga/pokerface.html"
+no3_09 = "https://www.azlyrics.com/lyrics/ladygaga/justdance.html"
+no4_09 = "https://www.azlyrics.com/lyrics/blackeyedpeas/igottafeelin.html"
+no5_09 = "https://www.azlyrics.com/lyrics/taylorswift/lovestory.html"
+no6_09 = "https://www.azlyrics.com/lyrics/florida/rightround.html"
+no7_09 = "https://www.azlyrics.com/lyrics/jasonmraz/imyours.html"
+no8_09 = "https://www.azlyrics.com/lyrics/beyonceknowles/singleladiesputaringonit.html"
+no9_09 = "https://www.azlyrics.com/lyrics/kanyewest/heartless.html"
+no10_09 = "https://www.azlyrics.com/lyrics/allamericanrejects/givesyouhell.html"
+no1_10 = "https://www.azlyrics.com/lyrics/keha/tiktok.html"
+no2_10 = "https://www.azlyrics.com/lyrics/ladyantebellum/needyounow.html"
+no3_10 = "https://www.azlyrics.com/lyrics/train/heysoulsister.html"
+no4_10 = "https://www.azlyrics.com/lyrics/katyperry/californiagurls.html"
+no5_10 = "https://www.azlyrics.com/lyrics/usher/omg.html"
+no6_10 = "https://www.azlyrics.com/lyrics/bob/airplanes.html"
+no7_10 = "https://www.azlyrics.com/lyrics/eminem/lovethewayyoulie.html"
+no8_10 = "https://www.azlyrics.com/lyrics/ladygaga/badromance.html"
+no9_10 = "https://www.azlyrics.com/lyrics/taiocruz/dynamite.html"
+no10_10 = "https://www.azlyrics.com/lyrics/taiocruz/breakyourheart.html"
+no1_11 = "https://www.azlyrics.com/lyrics/adele/rollinginthedeep.html"
+no2_11 = "https://www.azlyrics.com/lyrics/lmfao/partyrockanthem.html"
+no3_11 = "https://www.azlyrics.com/lyrics/katyperry/firework.html"
+no4_11 = "https://www.azlyrics.com/lyrics/katyperry/et.html"
+no5_11 = "https://www.azlyrics.com/lyrics/pitbull/givemeeverything.html"
+no6_11 = "https://www.azlyrics.com/lyrics/brunomars/grenade.html"
+no7_11 = "https://www.azlyrics.com/lyrics/ceelogreen/forgetyou.html"
+no8_11 = "https://www.azlyrics.com/lyrics/nickiminaj/superbass.html"
+no9_11 = "https://www.azlyrics.com/lyrics/maroon5/moveslikejagger.html"
+no10_11 = "https://www.azlyrics.com/lyrics/blackeyedpeas/justcantgetenough.html"
+no1_14 = "https://www.azlyrics.com/lyrics/pharrellwilliams/happy.html"
+no2_14 = "https://www.azlyrics.com/lyrics/katyperry/darkhorse.html"
+no3_14 = "https://www.azlyrics.com/lyrics/johnlegend/allofme.html"
+no4_14 = "https://www.azlyrics.com/lyrics/iggyazalea/fancy.html"
+no5_14 = "https://www.azlyrics.com/lyrics/onerepublic/countingstars.html"
+no6_14 = "https://www.azlyrics.com/lyrics/jasonderulo/talkdirty.html"
+no7_14 = "https://www.azlyrics.com/lyrics/magic/rude.html"
+no8_14 = "https://www.azlyrics.com/lyrics/meghantrainor/allaboutthatbass.html"
+no9_14 = "https://www.azlyrics.com/lyrics/arianagrande/problem.html"
+no10_14 = "https://www.azlyrics.com/lyrics/samsmith/staywithme.html"
+no1_15 = "https://www.azlyrics.com/lyrics/markronson/uptownfunk.html"
+no2_15 = "https://www.azlyrics.com/lyrics/edsheeran/thinkingoutloud.html"
+no3_15 = "https://www.azlyrics.com/lyrics/wizkhalifa/seeyouagain.html"
+no4_15 = "https://www.azlyrics.com/lyrics/fettywap/trapqueen.html"
+no5_15 = "https://www.azlyrics.com/lyrics/maroon5/sugar.html"
+no6_15 = "https://www.azlyrics.com/lyrics/walkthemoon/shutupanddance.html"
+no7_15 = "https://www.azlyrics.com/lyrics/taylorswift/blankspace.html"
+no8_15 = "https://www.azlyrics.com/lyrics/silento/watchmewhipnaenae.html"
+no9_15 = "https://www.azlyrics.com/lyrics/weeknd/earnedit.html"
+no10_15 = "https://www.azlyrics.com/lyrics/weeknd/thehills.html"
+no1_16 = "https://www.azlyrics.com/lyrics/justinbieber/loveyourself.html"
+no2_16 = "https://www.azlyrics.com/lyrics/justinbieber/sorry.html"
+no3_16 = "https://www.azlyrics.com/lyrics/drake/onedance.html"
+no4_16 = "https://www.azlyrics.com/lyrics/rihanna/work.html"
+no5_16 = "https://www.azlyrics.com/lyrics/twentyonepilots/stressedout.html"
+no6_16 = "https://www.azlyrics.com/lyrics/desiigner/panda.html"
+no7_16 = "https://www.azlyrics.com/lyrics/adele/hello.html"
+no8_16 = "https://www.azlyrics.com/lyrics/chainsmokers/dontletmedown.html"
+no9_16 = "https://www.azlyrics.com/lyrics/justintimberlake/cantstopthefeeling.html"
+no10_16 = "https://www.azlyrics.com/lyrics/chainsmokers/closer.html"
+no1_17 = "https://www.azlyrics.com/lyrics/edsheeran/shapeofyou.html"
+no2_17 = "https://www.azlyrics.com/lyrics/luisfonsi/despacitoremix.html"
+no3_17 = "https://www.azlyrics.com/lyrics/brunomars/thatswhatilike.html"
+no4_17 = "https://www.azlyrics.com/lyrics/kendricklamar/humble.html"
+no5_17 = "https://www.azlyrics.com/lyrics/chainsmokers/somethingjustlikethis.html"
+no6_17 = "https://www.azlyrics.com/lyrics/migos/badandboujee.html"
+no7_17 = "https://www.azlyrics.com/lyrics/chainsmokers/closer.html"
+no8_17 = "https://www.azlyrics.com/lyrics/samhunt/bodylikeabackroad.html"
+no9_17 = "https://www.azlyrics.com/lyrics/imaginedragons/believer.html"
+no10_17 = "https://www.azlyrics.com/lyrics/postmalone/congratulations.html"
+no1_18 = "https://www.azlyrics.com/lyrics/drake/godsplan.html"
+no2_18 = "https://www.azlyrics.com/lyrics/edsheeran/perfect.html"
+no3_18 = "https://www.azlyrics.com/lyrics/beberexha/meanttobe.html"
+no4_18 = "https://www.azlyrics.com/lyrics/camilacabello/havana.html"
+no5_18 = "https://www.azlyrics.com/lyrics/postmalone/rockstar.html"
+no6_18 = "https://www.azlyrics.com/lyrics/postmalone/psycho.html"
+no7_18 = "https://www.azlyrics.com/lyrics/cardi-b/ilikeit.html"
+no8_18 = "https://www.azlyrics.com/lyrics/zedd/themiddle.html"
+no9_18 = "https://www.azlyrics.com/lyrics/drake/inmyfeelings.html"
+no10_18 = "https://www.azlyrics.com/lyrics/maroon5/girlslikeyou.html"
+no1_19 = "https://www.azlyrics.com/lyrics/lilnasx/oldtownroadremix.html"
+no2_19 = "https://www.azlyrics.com/lyrics/postmalone/sunflower.html"
+no3_19 = "https://www.azlyrics.com/lyrics/halsey/withoutme.html"
+no4_19 = "https://www.azlyrics.com/lyrics/billieeilish/badguy.html"
+no5_19 = "https://www.azlyrics.com/lyrics/postmalone/wow.html"
+no6_19 = "https://www.azlyrics.com/lyrics/marshmello/happier.html"
+no7_19 = "https://www.azlyrics.com/lyrics/arianagrande/7rings.html"
+no8_19 = "https://www.azlyrics.com/lyrics/khalid/talk.html"
+no9_19 = "https://www.azlyrics.com/lyrics/travisscott/sickomode.html"
+no10_19 = "https://www.azlyrics.com/lyrics/jonasbrothers/sucker.html"
+no1_20 = "https://www.azlyrics.com/lyrics/weeknd/blindinglights.html"
+no2_20 = "https://www.azlyrics.com/lyrics/postmalone/circles.html"
+no3_20 = "https://www.azlyrics.com/lyrics/roddyricch/thebox.html"
+no4_20 = "https://www.azlyrics.com/lyrics/dualipa/dontstartnow.html"
+no5_20 = "https://www.azlyrics.com/lyrics/dababy/rockstar.html"
+no6_20 = "https://www.azlyrics.com/lyrics/harrystyles/adoreyou.html"
+no7_20 = "https://www.azlyrics.com/lyrics/future/lifeisgood.html"
+no8_20 = "https://www.azlyrics.com/lyrics/maroon5/memories.html"
+no9_20 = "https://www.azlyrics.com/lyrics/maren-morris/thebones.html"
+no10_20 = "https://www.azlyrics.com/lyrics/lewiscapaldi/someoneyouloved.html"
+no1_21 = "https://www.azlyrics.com/lyrics/dualipa/levitating.html"
+no2_21 = "https://www.azlyrics.com/lyrics/weeknd/saveyourtears.html"
+no3_21 = "https://www.azlyrics.com/lyrics/weeknd/blindinglights.html"
+no4_21 = "https://www.azlyrics.com/lyrics/24kgoldn/mood.html"
+no5_21 = "https://www.azlyrics.com/lyrics/oliviarodrigo/good4u.html"
+no6_21 = "https://www.azlyrics.com/lyrics/dojacat/kissmemore.html"
+no7_21 = "https://www.azlyrics.com/lyrics/brunomars/leavethedooropen.html"
+no8_21 = "https://www.azlyrics.com/lyrics/oliviarodrigo/driverslicense.html"
+no9_21 = "https://www.azlyrics.com/lyrics/lilnasx/monterocallmebyyourname.html"
+no10_21 = "https://www.azlyrics.com/lyrics/justinbieber/peaches.html"
+
+```
+
+```{r}
+
+URL1 = c(no1_58,no2_58,no3_58,no4_58,no5_58,no6_58,no7_58,no8_58,no9_58, no10_58,no1_59,no2_59,no3_59,no4_59,no5_59,no6_59,no7_59,no8_59,no9_59,no10_59,no1_60,no2_60,no3_60,no4_60,no5_60,no6_60,no7_60,no8_60,no9_60,no10_60,no1_61,no2_61,no3_61,no4_61,no5_61,no6_61,no7_61,no8_61,no9_61,no10_61,no1_62,no2_62,no3_62,no4_62,no5_62,no6_62,no7_62,no8_62,no9_62,no10_62,no1_63,no2_63,no3_63,no4_63,no5_63,no6_63,no7_63,no8_63,no9_63,no10_63,no1_64,no2_64,no3_64,no4_64,no5_64,no6_64,no7_64,no8_64,no9_64,no10_64,no1_65,no2_65,no3_65,no4_65,no5_65,no6_65,no7_65,no8_65,no9_65,no10_65,no1_66,no2_66,no3_66,no4_66,no5_66,no6_66,no7_66,no8_66,no9_66,no10_66,no1_67,no2_67,no3_67,no4_67,no5_67,no6_67,no7_67,no8_67,no9_67,no10_67,no1_68,no2_68,no3_68,no4_68,no5_68,no6_68,no7_68,no8_68,no9_68,no10_68,no1_69,no2_69,no3_69,no4_69,no5_69,no6_69,no7_69,no8_69,no9_69,no10_69,no1_70,no2_70,no3_70,no4_70,no5_70,no6_70,no7_70,no8_70,no9_70,no10_70,no1_71,no2_71,no3_71,no4_71,no5_71,no6_71,no7_71,no8_71,no9_71,no10_71,no1_72,no2_72,no3_72,no4_72,no5_72,no6_72,no7_72,no8_72,no9_72,no10_72,no1_73,no2_73,no3_73,no4_73,no5_73,no6_73,no7_73,no8_73,no9_73,no10_73,no1_74,no2_74,no3_74,no4_74,no5_74,no6_74,no7_74,no8_74,no9_74,no10_74,no1_75,no2_75,no3_75,no4_75,no5_75,no6_75,no7_75,no8_75,no9_75,no10_75,no1_76,no2_76,no3_76,no4_76,no5_76,no6_76,no7_76,no8_76,no9_76,no10_76,no1_77,no2_77,no3_77,no4_77,no5_77,no6_77,no7_77,no8_77,no9_77,no10_77,no1_78,no2_78,no3_78,no4_78,no5_78,no6_78,no7_78,no8_78,no9_78,no10_78,no1_79,no2_79,no3_79,no4_79,no5_79,no6_79,no7_79,no8_79,no9_79,no10_79,no1_80,no2_80,no3_80,no4_80,no5_80,no6_80,no7_80,no8_80,no9_80,no10_80,no1_81,no2_81,no3_81,no4_81,no5_81,no6_81,no7_81,no8_81,no9_81,no10_81,no1_82,no2_82,no3_82,no4_82,no5_82,no6_82,no7_82,no8_82,no9_82,no10_82,no1_83,no2_83,no3_83,no4_83,no5_83,no6_83,no7_83,no8_83,no9_83,no10_83,no1_84,no2_84,no3_84,no4_84,no5_84,no6_84,no7_84,no8_84,no9_84,no10_84,no1_85,no2_85,no3_85,no4_85,no5_85,no6_85,no7_85,no8_85,no9_85,no10_85,no1_86,no2_86,no3_86,no4_86,no5_86,no6_86,no7_86,no8_86,no9_86,no10_86)
+
+URL2 = c(no1_87,no2_87,no3_87,no4_87,no5_87,no6_87,no7_87,no8_87,no9_87,no10_87,no1_88,no2_88,no3_88,no4_88,no5_88,no6_88,no7_88,no8_88,no9_88,no10_88,no1_89,no2_89,no3_89,no4_89,no5_89,no6_89,no7_89,no8_89,no9_89,no10_89,no1_90,no2_90,no3_90,no4_90,no5_90,no6_90,no7_90,no8_90,no9_90,no10_90,no1_91,no2_91,no3_91,no4_91,no5_91,no6_91,no7_91,no8_91,no9_91,no10_91,no1_92,no2_92,no3_92,no4_92,no5_92,no6_92,no7_92,no8_92,no9_92,no10_92,no1_93,no2_93,no3_93,no4_93,no5_93,no6_93,no7_93,no8_93,no9_93,no10_93,no1_94,no2_94,no3_94,no4_94,no5_94,no6_94,no7_94,no8_94,no9_94,no10_94,no1_95,no2_95,no3_95,no4_95,no5_95,no6_95,no7_95,no8_95,no9_95,no10_95,no1_96,no2_96,no3_96,no4_96,no5_96,no6_96,no7_96,no8_96,no9_96,no10_96,no1_97,no2_97,no3_97,no4_97,no5_97,no6_97,no7_97,no8_97,no9_97,no10_97,no1_98,no2_98,no3_98,no4_98,no5_98,no6_98,no7_98,no8_98,no9_98,no10_98,no1_99,no2_99,no3_99,no4_99,no5_99,no6_99,no7_99,no8_99,no9_99,no10_99,no1_00,no2_00,no3_00,no4_00,no5_00,no6_00,no7_00,no8_00,no9_00,no10_00,no1_01,no2_01,no3_01,no4_01,no5_01,no6_01,no7_01,no8_01,no9_01,no10_01,no1_02,no2_02,no3_02,no4_02,no5_02,no6_02,no7_02,no8_02,no9_02,no10_02,no1_03,no2_03,no3_03,no4_03,no5_03,no6_03,no7_03,no8_03,no9_03,no10_03,no1_04,no2_04,no3_04,no4_04,no5_04,no6_04,no7_04,no8_04,no9_04,no10_04,no1_05,no2_05,no3_05,no4_05,no5_05,no6_05,no7_05,no8_05,no9_05,no10_05,no1_06,no2_06,no3_06,no4_06,no5_06,no6_06,no7_06,no8_06,no9_06,no10_06,no1_07,no2_07,no3_07,no4_07,no5_07,no6_07,no7_07,no8_07,no9_07,no10_07,no1_08,no2_08,no3_08,no4_08,no5_08,no6_08,no7_08,no8_08,no9_08,no10_08,no1_09,no2_09,no3_09,no4_09,no5_09,no6_09,no7_09,no8_09,no9_09,no10_09,no1_10,no2_10,no3_10,no4_10,no5_10,no6_10,no7_10,no8_10,no9_10,no10_10,no1_11,no2_11,no3_11,no4_11,no5_11,no6_11,no7_11,no8_11,no9_11,no10_11,no1_14,no2_14,no3_14,no4_14,no5_14,no6_14,no7_14,no8_14,no9_14,no10_14,no1_15,no2_15,no3_15,no4_15,no5_15,no6_15,no7_15,no8_15,no9_15,no10_15,no1_16,no2_16,no3_16,no4_16,no5_16,no6_16,no7_16,no8_16,no9_16,no10_16,no1_17,no2_17,no3_17,no4_17,no5_17,no6_17,no7_17,no8_17,no9_17,no10_17,no1_18,no2_18,no3_18,no4_18,no5_18,no6_18,no7_18,no8_18,no9_18,no10_18,no1_19,no2_19,no3_19,no4_19,no5_19,no6_19,no7_19,no8_19,no9_19,no10_19,no1_20,no2_20,no3_20,no4_20,no5_20,no6_20,no7_20,no8_20,no9_20,no10_20,no1_21,no2_21,no3_21,no4_21,no5_21,no6_21,no7_21,no8_21,no9_21,no10_21)
+
+URLs = c(URL1, URL2)
+
+```
+
+```{r}
+# function takes a url 
+# gives lyrics 
+# need to add repetitiveness test inside function. 
+# needs S.G. to give "br+ div" (on lyrics without overhead/title)
+lyrics = function(x) {
+  lyrics_url = x 
+  B = read_html(lyrics_url)
+  lyrics = html_nodes(B, "br+ div")
+  lyrics = html_text(lyrics, trim = F) %>% .[1]
+  lyrics = replace_white(lyrics)
+  return(lyrics)
+}
+
+```
+
+
+```{r}
+# REPETITION CHUNK:
+# need 2 or more measures - (words and phrases (and verses))
+# stop_words has (SMART, snowball, onix) -> all might take too many words out
+# total words in c() would be useful -> only possible after tokens
+# ^> total unique words too 
+
+lyrics(no1_64)
+
+testing = tibble(text = lyrics(no7_65)) # formatting to token-ize
+table = testing %>% unnest_tokens(words, text) # token by words
+# total n 
+n = count(table) 
+total_words = n$n # total amount of words 
+table = table %>% count(words)
+# total repeated words 
+table %>% filter(!n == 1) 
+# top ten 
+table %>% arrange(desc(n)) %>% head(10) 
+top_ten = sum() # sum of column n 
+  
+snowball = stop_words %>% filter(lexicon == "snowball") %>% pull(word) %>% sort() # shows words 
+table = table %>% filter(!word %in% snowball)
+
+# filter stop_words -> textclean package
+filter(!lyrics %in% stop_words$word)
+# token words -> from table, of lyrics 
+# ^> needing a table to token-ize lyrics is throwing me off
+
+# count and keep tokens 
+# find way to standardize repetition 
+# ^> find way to token phrases? 
+# return standardized score 
+
+```
+
+
+# for output we would want to make the url's a character vector, to run through a for loop. the for loop should feed th url's into the lyrics + score function. returning two scores of repetition. This would be best if we could input these scores into a new column that correlates with the row of the song.
+
+# IDEAS FOR STANDARDIZING: 
+#  - amount of times the top ten most repeated words were repeated
+#   ^> isn't standardized, will skew to songs with more words
+#  - total amount of unique (or copied) words / total amount of words 
+#  - (total amount of copied (or unique) phrases / sentences) / (total amount of sentences)
+
+```{r}
 tab_58 = songs(url_58)
-tab_58 = tab_58 %>% mutate(Year = 1958)
-tab_59 = songs(url_59)
-tab_59 = tab_59 %>% mutate(Year = 1959)
-tab_60 = songs(url_60)
-tab_60 = tab_60 %>% mutate(Year = 1960)
-tab_61 = songs(url_61)
-tab_61 = tab_61 %>% mutate(Year = 1961)
-tab_62 = songs(url_62)
-tab_62 = tab_62 %>% mutate(Year = 1962)
-tab_63 = songs(url_63)
-tab_63 = tab_63 %>% mutate(Year = 1963)
-tab_64 = songs(url_64)
-tab_64 = tab_64 %>% mutate(Year = 1964)
-tab_65 = songs(url_65)
-tab_65 = tab_65 %>% mutate(Year = 1965)
-tab_66 = songs(url_66)
-tab_66 = tab_66 %>% mutate(Year = 1966)
-tab_67 = songs(url_67)
-tab_67 = tab_67 %>% mutate(Year = 1967)
-tab_68 = songs(url_68)
-tab_68 = tab_68 %>% mutate(Year = 1968)
-tab_69 = songs(url_69)
-tab_69 = tab_69 %>% mutate(Year = 1969)
-tab_70 = songs(url_70)
-tab_70 = tab_70 %>% mutate(Year = 1970)
-tab_71 = songs(url_71)
-tab_71 = tab_71 %>% mutate(Year = 1971)
-tab_72 = songs(url_72)
-tab_72 = tab_72 %>% mutate(Year = 1972)
-tab_73 = songs(url_73)
-tab_73 = tab_73 %>% mutate(Year = 1973)
-tab_74 = songs(url_74)
-tab_74 = tab_74 %>% mutate(Year = 1974)
-tab_75 = songs(url_75)
-tab_75 = tab_75 %>% mutate(Year = 1975)
-tab_76 = songs(url_76)
-tab_76 = tab_76 %>% mutate(Year = 1976)
-tab_77 = songs(url_77)
-tab_77 = tab_77 %>% mutate(Year = 1977)
-tab_78 = songs(url_78)
-tab_78 = tab_78 %>% mutate(Year = 1978)
-tab_79 = songs(url_79)
-tab_79 = tab_79 %>% mutate(Year = 1979)
-tab_80 = songs(url_80)
-tab_80 = tab_80 %>% mutate(Year = 1980)
-tab_81 = songs(url_81)
-tab_81 = tab_81 %>% mutate(Year = 1981)
-tab_82 = songs(url_82)
-tab_82 = tab_82 %>% mutate(Year = 1982)
-tab_83 = songs(url_83)
-tab_83 = tab_83 %>% mutate(Year = 1983)
-tab_84 = songs(url_84)
-tab_84 = tab_84 %>% mutate(Year = 1984)
-tab_85 = songs(url_85)
-tab_85 = tab_85 %>% mutate(Year = 1985)
-tab_86 = songs(url_86)
-tab_86 = tab_86 %>% mutate(Year = 1986)
-tab_87 = songs(url_87)
-tab_87 = tab_87 %>% mutate(Year = 1987)
-tab_88 = songs(url_88)
-tab_88 = tab_88 %>% mutate(Year = 1988)
-tab_89 = songs(url_89)
-tab_89 = tab_89 %>% mutate(Year = 1989)
-tab_90 = songs(url_90)
-tab_90 = tab_90 %>% mutate(Year = 1990)
-tab_91 = songs(url_91)
-tab_91 = tab_91 %>% mutate(Year = 1991)
-tab_92 = songs(url_92)
-tab_92 = tab_92 %>% mutate(Year = 1992)
-tab_93 = songs(url_93)
-tab_93 = tab_93 %>% mutate(Year = 1993)
-tab_94 = songs(url_94)
-tab_94 = tab_94 %>% mutate(Year = 1994)
-tab_95 = songs(url_95)
-tab_95 = tab_95 %>% mutate(Year = 1995)
-tab_96 = songs(url_96)
-tab_96 = tab_96 %>% mutate(Year = 1996)
-tab_97 = songs(url_97)
-tab_97 = tab_97 %>% mutate(Year = 1997)
-tab_98 = songs(url_98)
-tab_98 = tab_98 %>% mutate(Year = 1998)
-tab_99 = songs(url_99)
-tab_99 = tab_99 %>% mutate(Year = 1999)
-tab_00 = songs(url_00)
-tab_00 = tab_00 %>% mutate(Year = 2000)
-tab_01 = songs(url_01)
-tab_01 = tab_01 %>% mutate(Year = 2001)
-tab_02 = songs(url_02)
-tab_02 = tab_02 %>% mutate(Year = 2002)
-tab_03 = songs(url_03)
-tab_03 = tab_03 %>% mutate(Year = 2003)
-tab_04 = songs(url_04)
-tab_04 = tab_04 %>% mutate(Year = 2004)
-tab_05 = songs(url_05)
-tab_05 = tab_05 %>% mutate(Year = 2005)
-tab_06 = songs(url_06)
-tab_06 = tab_06 %>% mutate(Year = 2006)
-tab_07 = songs(url_07)
-tab_07 = tab_07 %>% mutate(Year = 2007)
-tab_08 = songs(url_08)
-tab_08 = tab_08 %>% mutate(Year = 2008)
-tab_09 = songs(url_09)
-tab_09 = tab_09 %>% mutate(Year = 2009)
-tab_10 = songs(url_10)
-tab_10 = tab_10 %>% mutate(Year = 2010)
-tab_11 = songs(url_11)
-tab_11 = tab_11 %>% mutate(Year = 2011)
-tab_14 = songs(url_14)
-tab_14 = tab_14 %>% mutate(Year = 2014)
-tab_15 = songs(url_15)
-tab_15 = tab_15 %>% mutate(Year = 2015)
-tab_16 = songs(url_16)
-tab_16 = tab_16 %>% mutate(Year = 2016)
-tab_17 = songs(url_17)
-tab_17 = tab_17 %>% mutate(Year = 2017)
-tab_18 = songs(url_18)
-tab_18 = tab_18 %>% mutate(Year = 2018)
-tab_19 = songs(url_19)
-tab_19 = tab_19 %>% mutate(Year = 2019)
-tab_20 = songs(url_20)
-tab_20 = tab_20 %>% mutate(Year = 2020)
-tab_21 = songs(url_21)
-tab_21 = tab_21 %>% mutate(Year = 2021)
+ tab_58 = tab_58 %>% mutate(Year = 1958)
+ tab_59 = songs(url_59)
+ tab_59 = tab_59 %>% mutate(Year = 1959)
+ tab_60 = songs(url_60)
+ tab_60 = tab_60 %>% mutate(Year = 1960)
+ tab_61 = songs(url_61)
+ tab_61 = tab_61 %>% mutate(Year = 1961)
+ tab_62 = songs(url_62)
+ tab_62 = tab_62 %>% mutate(Year = 1962)
+ tab_63 = songs(url_63)
+ tab_63 = tab_63 %>% mutate(Year = 1963)
+ tab_64 = songs(url_64)
+ tab_64 = tab_64 %>% mutate(Year = 1964)
+ tab_65 = songs(url_65)
+ tab_65 = tab_65 %>% mutate(Year = 1965)
+ tab_66 = songs(url_66)
+ tab_66 = tab_66 %>% mutate(Year = 1966)
+ tab_67 = songs(url_67)
+ tab_67 = tab_67 %>% mutate(Year = 1967)
+ tab_68 = songs(url_68)
+ tab_68 = tab_68 %>% mutate(Year = 1968)
+ tab_69 = songs(url_69)
+ tab_69 = tab_69 %>% mutate(Year = 1969)
+ tab_70 = songs(url_70)
+ tab_70 = tab_70 %>% mutate(Year = 1970)
+ tab_71 = songs(url_71)
+ tab_71 = tab_71 %>% mutate(Year = 1971)
+ tab_72 = songs(url_72)
+ tab_72 = tab_72 %>% mutate(Year = 1972)
+ tab_73 = songs(url_73)
+ tab_73 = tab_73 %>% mutate(Year = 1973)
+ tab_74 = songs(url_74)
+ tab_74 = tab_74 %>% mutate(Year = 1974)
+ tab_75 = songs(url_75)
+ tab_75 = tab_75 %>% mutate(Year = 1975)
+ tab_76 = songs(url_76)
+ tab_76 = tab_76 %>% mutate(Year = 1976)
+ tab_77 = songs(url_77)
+ tab_77 = tab_77 %>% mutate(Year = 1977)
+ tab_78 = songs(url_78)
+ tab_78 = tab_78 %>% mutate(Year = 1978)
+ tab_79 = songs(url_79)
+ tab_79 = tab_79 %>% mutate(Year = 1979)
+ tab_80 = songs(url_80)
+ tab_80 = tab_80 %>% mutate(Year = 1980)
+ tab_81 = songs(url_81)
+ tab_81 = tab_81 %>% mutate(Year = 1981)
+ tab_82 = songs(url_82)
+ tab_82 = tab_82 %>% mutate(Year = 1982)
+ tab_83 = songs(url_83)
+ tab_83 = tab_83 %>% mutate(Year = 1983)
+ tab_84 = songs(url_84)
+ tab_84 = tab_84 %>% mutate(Year = 1984)
+ tab_85 = songs(url_85)
+ tab_85 = tab_85 %>% mutate(Year = 1985)
+ tab_86 = songs(url_86)
+ tab_86 = tab_86 %>% mutate(Year = 1986)
+ tab_87 = songs(url_87)
+ tab_87 = tab_87 %>% mutate(Year = 1987)
+ tab_88 = songs(url_88)
+ tab_88 = tab_88 %>% mutate(Year = 1988)
+ tab_89 = songs(url_89)
+ tab_89 = tab_89 %>% mutate(Year = 1989)
+ tab_90 = songs(url_90)
+ tab_91 = songs(url_92)
+ tab_90 = tab_90 %>% mutate(Year = 1990)
+ tab_91 = songs(url_91)
+ tab_91 = tab_91 %>% mutate(Year = 1991)
+ tab_92 = songs(url_92)
+ tab_92 = tab_92 %>% mutate(Year = 1992)
+ tab_93 = songs(url_93)
+ tab_93 = tab_93 %>% mutate(Year = 1993)
+ tab_94 = songs(url_94)
+ tab_94 = tab_94 %>% mutate(Year = 1994)
+ tab_95 = songs(url_95)
+ tab_95 = tab_95 %>% mutate(Year = 1995)
+ tab_96 = songs(url_96)
+ tab_96 = tab_96 %>% mutate(Year = 1996)
+ tab_97 = songs(url_97)
+ tab_97 = tab_97 %>% mutate(Year = 1997)
+ tab_98 = songs(url_98)
+ tab_98 = tab_98 %>% mutate(Year = 1998)
+ tab_99 = songs(url_99)
+ tab_99 = tab_99 %>% mutate(Year = 1999)
+ tab_00 = songs(url_00)
+ tab_00 = tab_00 %>% mutate(Year = 2000)
+ tab_01 = songs(url_01)
+ tab_01 = tab_01 %>% mutate(Year = 2001)
+ tab_02 = songs(url_02)
+ tab_02 = tab_02 %>% mutate(Year = 2002)
+ tab_03 = songs(url_03)
+ tab_03 = tab_03 %>% mutate(Year = 2003)
+ tab_04 = songs(url_04)
+ tab_04 = tab_04 %>% mutate(Year = 2004)
+ tab_05 = songs(url_05)
+ tab_05 = tab_05 %>% mutate(Year = 2005)
+ tab_06 = songs(url_06)
+ tab_06 = tab_06 %>% mutate(Year = 2006)
+ tab_07 = songs(url_07)
+ tab_07 = tab_07 %>% mutate(Year = 2007)
+ tab_08 = songs(url_08)
+ tab_08 = tab_08 %>% mutate(Year = 2008)
+ tab_09 = songs(url_09)
+ tab_09 = tab_09 %>% mutate(Year = 2009)
+ tab_10 = songs(url_10)
+ tab_10 = tab_10 %>% mutate(Year = 2010)
+ tab_11 = songs(url_11)
+ tab_11 = tab_11 %>% mutate(Year = 2011)
+ tab_12 = songs(url_12)
+ tab_12 = tab_12 %>% mutate(Year = 2012)
+ tab_13 = songs(url_13)
+ tab_13 = tab_13 %>% mutate(Year = 2013)
+ tab_14 = songs(url_14)
+ tab_14 = tab_14 %>% mutate(Year = 2014)
+ tab_15 = songs(url_15)
+ tab_15 = tab_15 %>% mutate(Year = 2015)
+ tab_16 = songs(url_16)
+ tab_16 = tab_16 %>% mutate(Year = 2016)
+ tab_17 = songs(url_17)
+ tab_17 = tab_17 %>% mutate(Year = 2017)
+ tab_18 = songs(url_18)
+ tab_18 = tab_18 %>% mutate(Year = 2018)
+ tab_19 = songs(url_19)
+ tab_19 = tab_19 %>% mutate(Year = 2019)
+ tab_20 = songs(url_20)
+ tab_20 = tab_20 %>% mutate(Year = 2020)
+ tab_21 = songs(url_21)
+ tab_21 = tab_21 %>% mutate(Year = 2021)
+ 
+ tab_00
 ```
 
-```{r,eval=FALSE,include=FALSE}
-## Bind all of the separate year tables together by row to form a single data frame.
-## Years 2012 and 2013 were not used.
-data_songs = rbind(tab_58, tab_59, tab_60, tab_61, tab_62, tab_63, tab_64, tab_65, tab_66, tab_67, tab_68, tab_69, tab_70, tab_71, tab_72, tab_73, tab_74, tab_75, tab_76, tab_77, tab_78, tab_79, tab_80, tab_81, tab_82, tab_83, tab_84, tab_85, tab_86, tab_87, tab_88, tab_89, tab_90, tab_91, tab_92, tab_93, tab_94, tab_95, tab_96, tab_97, tab_98, tab_99, tab_00, tab_01, tab_02, tab_03, tab_04, tab_05, tab_06, tab_07, tab_08, tab_09, tab_10, tab_11, tab_14, tab_15, tab_16, tab_17, tab_18, tab_19, tab_20, tab_21) 
+```{r}
+data_songs = rbind(tab_58, tab_59, tab_60, tab_61, tab_62, tab_63, tab_64, tab_65, tab_66, tab_67, tab_68, tab_69, tab_70, tab_71, tab_72, tab_73, tab_74, tab_75, tab_76, tab_77, tab_78, tab_79, tab_80, tab_81, tab_82, tab_83, tab_84, tab_85, tab_86, tab_87, tab_88, tab_89, tab_90, tab_91, tab_92, tab_93, tab_94, tab_95, tab_96, tab_97, tab_98, tab_99, tab_00, tab_01, tab_02, tab_03, tab_04, tab_05, tab_06, tab_07, tab_08, tab_09, tab_10, tab_11, tab_14, tab_15, tab_16, tab_17, tab_18, tab_19, tab_20, tab_21)
 
-## Make 'No.' column numeric
 data_songs = data_songs %>% transform(No. = as.numeric(No.))
+ data_songs = data_songs %>% group_by(No.) %>% arrange(No.)
+ data_songs
+ 
+data_songs_list = list(tab_58, tab_59, tab_60, tab_61, tab_62, tab_63, tab_64, tab_65, tab_66, tab_67, tab_68, tab_69, tab_70, tab_71, tab_72, tab_73, tab_74, tab_75, tab_76, tab_77, tab_78, tab_79, tab_80, tab_81, tab_82, tab_83, tab_84, tab_85, tab_86, tab_87, tab_88, tab_89, tab_90, tab_91, tab_92, tab_93, tab_94, tab_95, tab_96, tab_97, tab_98, tab_99, tab_00, tab_01, tab_02, tab_03, tab_04, tab_05, tab_06, tab_07, tab_08, tab_09, tab_10, tab_11, tab_14, tab_15, tab_16, tab_17, tab_18, tab_19, tab_20, tab_21)
 
-## Save data frame
-save(data_songs,file="songs.Rda")
+data_songs_list
+
 ```
 
-```{r,include=FALSE}
-## Load saved data frame for future use
-load("songs.Rda")
-data_songs
+```{r}
+# psuedo code: 
+# lyric links 
+# may need different functions for different songs 
+URLs = c(lyrics(no1_58, no2_58, no3_58))
+# feed into function by making for (i in URLs[i])
+# make sure format will work 
+
 ```
+
+
